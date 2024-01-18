@@ -47,7 +47,7 @@ public class UnitTests {
         var big_number = new Word(TRUE_BITS);
         big_number.set(6);
         System.out.println(big_number);
-        assertEquals(-6, big_number.getSigned());
+        assertEquals(6, big_number.getSigned());
         assertEquals(ZERO, big_number);
     }
 }
