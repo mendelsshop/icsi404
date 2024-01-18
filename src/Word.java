@@ -100,8 +100,8 @@ public class Word {
 
 	public int getSigned() {
 
-		return (bits[0].getValue() ? -1 : 1)
-				* IntStream.range(1, 32).map((i) -> (bits[i].getValue() ? (int) Math.pow(2, i) : 0)).sum();
+		return (bits[0].getValue() ? -Integer.MAX_VALUE : 0)
+				+ IntStream.range(1, 32).map((i) -> (bits[i].getValue() ? (int) Math.pow(2, i) : 0)).sum();
 
 	}
 
