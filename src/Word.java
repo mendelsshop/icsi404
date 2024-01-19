@@ -231,5 +231,13 @@ public class Word {
 		}
 		return new Word(res);
 	}
+	public void copy(Word other) {
+		bits = (Bit[]) Arrays.stream(other.bits).map(b -> new Bit(b.getValue())).toArray();
+	}
 
+	public void copy2(Word other) {
+		for (int i = 0; i < 32; i++) {
+			bits[i] = new Bit(other.bits[i].getValue());
+		}
+	}
 }
