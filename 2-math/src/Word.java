@@ -93,7 +93,8 @@ public class Word {
 		return map2(Bit::not);
 	}
 
-	// TODO: check where not over shifting/or adjust shift so its with shifting range ie > 32 = 32
+	// TODO: check where not over shifting/or adjust shift so its with shifting
+	// range ie > 32 = 32
 	public Word leftShift(int amount) {
 		var zerod = Stream.generate(() -> new Bit(false)).limit(amount);
 		var shifted = Arrays.stream(bits).limit(32 - amount).map(b -> new Bit(b.getValue()));
@@ -128,7 +129,7 @@ public class Word {
 	// TODO: check where not over shifting
 	public Word rightShift(int amount) {
 		var zerod = Stream.generate(() -> new Bit(false)).limit(amount);
-		var shifted = Arrays.stream(bits).skip(amount).map(b->new Bit(b.getValue()));
+		var shifted = Arrays.stream(bits).skip(amount).map(b -> new Bit(b.getValue()));
 		return new Word(Stream.concat(shifted, zerod)
 				.collect(Collectors.toList()).toArray(new Bit[32]));
 	}
@@ -232,4 +233,13 @@ public class Word {
 		return new Word(res);
 	}
 
+	public void copy(Word other) {
+		bits = (Bit[]) Arrays.stream(other.bits).map(b -> new Bit(b.getValue())).toArray();
+	}
+
+	public void copy2(Word other) {
+		for (int i = 0; i < 32; i++) {
+			bits[i] = new Bit(other.bits[i].getValue());
+		}
+	}
 }

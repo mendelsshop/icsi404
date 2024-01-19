@@ -24,9 +24,11 @@ public class ALU {
         } else if (operation == NOT) {
             result = op1.not();
         } else if (operation == LEFT_SHIFT) {
+            // TODO: ignore all but the lowest 5 bits?
             // TODO: how to go from op2 to number
             result = op1.leftShift(op2);
         } else if (operation == RIGHT_SHIFT) {
+            // TODO: ignore all but the lowest 5 bits?
             // TODO: how to go from op2 to number
             result = op1.rightShift(op2);
         } else if (operation == ADD) {
