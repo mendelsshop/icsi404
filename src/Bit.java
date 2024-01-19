@@ -1,4 +1,9 @@
 public class Bit {
+	@Override
+	public Bit clone() {
+		return new Bit(value);
+	}
+
 	private static boolean not(Boolean b) {
 		return b ? false : true;
 	}
