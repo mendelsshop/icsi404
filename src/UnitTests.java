@@ -1,11 +1,7 @@
 import static org.junit.Assert.*;
 
-import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.IntConsumer;
 import java.util.stream.IntStream;
 
@@ -74,7 +70,7 @@ public class UnitTests {
         var t1 = timeOperation(() -> IntStream.range(lowerInclusive, higherExclusive).forEach(doer));
         var t2 = timeOperation(() -> IntStream.range(lowerInclusive, higherExclusive).forEach(doer2));
 
-        System.out.println(name + " orginal:" + t1.toSeconds() + " new:" + t2.toSeconds());
+        System.out.println(name + " orginal:" + t1.toMillis() + " new:" + t2.toMillis());
     }
 
     @Test
@@ -93,21 +89,22 @@ public class UnitTests {
 
     }
 
-        @Test
+    @Test
     public void shift() {
 
-        compareRange(1, 32, i -> {
+        compareRange(0, 32, i -> {
             var word = new Word(TRUE_BITS);
             word.set(i);
-            System.out.println(i + " " +word);
-            word = word.leftShift2(i);
-            System.out.println(i + " " +word);
-            assertEquals(i<<i, word.getSigned());
+            word = word.leftShift(i);
+            assertEquals(i << i, word.getSigned());
         },
                 (i -> {
-                    var word = new Word(FALSE_BITS);
-                    word.leftShift(i);
-                    // assertEquals(i, word.getSigned2());
+
+                    var word = new Word(TRUE_BITS);
+                    word.set(i);
+                    word = word.leftShift2(i);
+                    assertEquals(i << i, word.getSigned2());
+
                 }), "signed");
 
     }
