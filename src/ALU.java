@@ -10,6 +10,15 @@ public class ALU {
     private static final Bit[] SUB = new Bit[] { new Bit(true), new Bit(true), new Bit(true), new Bit(true) };
     private static final Bit[] MUL = new Bit[] { new Bit(false), new Bit(true), new Bit(true), new Bit(true) };
 
+    private static final Word smallestBitMask = new Word(new Bit[] {
+            new Bit(true), new Bit(true), new Bit(true), new Bit(true), new Bit(true),
+            new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false),
+            new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false),
+            new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false),
+            new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false),
+            new Bit(false), new Bit(false), new Bit(false),
+    });
+
     public Word op1;
     public Word op2;
     public Word result;
@@ -24,13 +33,11 @@ public class ALU {
         } else if (operation == NOT) {
             result = op1.not();
         } else if (operation == LEFT_SHIFT) {
-            // TODO: ignore all but the lowest 5 bits?
-            // TODO: how to go from op2 to number
-            result = op1.leftShift(op2);
+            var smallets = op2.and(smallestBitMask);
+            result = op1.leftShift((int) smallets.getUnsigned());
         } else if (operation == RIGHT_SHIFT) {
-            // TODO: ignore all but the lowest 5 bits?
-            // TODO: how to go from op2 to number
-            result = op1.rightShift(op2);
+            var smallets = op2.and(smallestBitMask);
+            result = op1.rightShift((int) smallets.getUnsigned());
         } else if (operation == ADD) {
             result = add2(op1, op2);
         } else if (operation == SUB) {

@@ -17,8 +17,15 @@ public class Word {
 	// shifiting and to/from decimal conversions
 	private Bit[] bits;
 
-	// TODO: check array is right size
+	private static void checkRange(int i) {
+		if (i < 0 || i > 32) {
+			// TODO: better exeption
+			throw new IndexOutOfBoundsException();
+		}
+	}
+
 	public Word(Bit[] startBits) {
+		checkRange(bits.length);
 		bits = startBits;
 	}
 
@@ -44,13 +51,13 @@ public class Word {
 		return true;
 	}
 
-	// TODO: check out of bounds?
 	public Bit getBit(int i) {
+		checkRange(i);
 		return new Bit(bits[i].getValue());
 	}
 
-	// TODO: check out of bounds?
 	public void setBit(int i, Bit bit) {
+		checkRange(i);
 		// TODO: time for clone?
 		bits[i] = new Bit(bit.getValue());
 	}
@@ -93,9 +100,8 @@ public class Word {
 		return map2(Bit::not);
 	}
 
-	// TODO: check where not over shifting/or adjust shift so its with shifting
-	// range ie > 32 = 32
 	public Word leftShift(int amount) {
+		checkRange(amount);
 		var zerod = Stream.generate(() -> new Bit(false)).limit(amount);
 		var shifted = Arrays.stream(bits).limit(32 - amount).map(b -> new Bit(b.getValue()));
 		return new Word(Stream.concat(zerod, shifted)
@@ -103,6 +109,7 @@ public class Word {
 	}
 
 	public Word leftShift2(int amount) {
+		checkRange(amount);
 		var res = new Bit[32];
 		var i = 0;
 		for (; i < amount; i++) {
@@ -115,6 +122,7 @@ public class Word {
 	}
 
 	public Word rightShift2(int amount) {
+		checkRange(amount);
 		var res = new Bit[32];
 		var i = 0;
 		for (; i < 32 - amount; i++) {
@@ -126,8 +134,8 @@ public class Word {
 		return new Word(res);
 	}
 
-	// TODO: check where not over shifting
 	public Word rightShift(int amount) {
+		checkRange(amount);
 		var zerod = Stream.generate(() -> new Bit(false)).limit(amount);
 		var shifted = Arrays.stream(bits).skip(amount).map(b -> new Bit(b.getValue()));
 		return new Word(Stream.concat(shifted, zerod)
