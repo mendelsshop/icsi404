@@ -25,7 +25,7 @@ public class Word {
 	}
 
 	public Word(Bit[] startBits) {
-		checkRange(bits.length);
+		checkRange(startBits.length);
 		bits = startBits;
 	}
 
