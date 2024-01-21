@@ -1,3 +1,5 @@
+import java.util.stream.IntStream;
+
 public class ALU {
 
     private static final Bit[] AND = new Bit[] { new Bit(true), new Bit(false), new Bit(false), new Bit(false) };
@@ -23,6 +25,9 @@ public class ALU {
     public Word op2;
     public Word result;
 
+    private record Tuple<T, U>(T car, U cdr) {
+    }
+
     public void doOperation(Bit[] operation) {
         if (operation == AND) {
             result = op1.and(op2);
@@ -47,9 +52,19 @@ public class ALU {
         }
     }
 
-    private Word add2(Word a, Word b) {
+    protected static Word add2(Word a, Word b) {
+        Bit[] car = IntStream.range(0, 32).boxed().reduce(new Tuple<>(new Bit[32], new Bit(false)), (tuple , i) -> {
+            var x = a.getBit(i);
+            var y = b.getBit(i);
+            var cin = tuple.cdr;
+            tuple.car[i] = x.xor(y.xor(cin));
+            var cout = x.and(y.or(x.xor(y).and(cin)));
+            return new Tuple<>(tuple.car, cout);
+        }, (i, x) -> x).car;
+        return new Word(car);
     }
 
     private Word add4(Word a, Word b) {
+        return null;
     }
 }

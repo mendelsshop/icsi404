@@ -108,4 +108,13 @@ public class UnitTests {
                 }), "signed");
 
     }
+
+
+    @Test public void add() {
+        var n1 = new Word(new Bit[32]);
+        var n2 = new Word(new Bit[32]);
+        n1.set(5);
+        n2.set(566);
+        System.out.println(ALU.add2(n1,n2).getSigned());
+    }
 }
