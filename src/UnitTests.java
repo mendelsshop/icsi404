@@ -114,7 +114,14 @@ public class UnitTests {
         var n1 = new Word(new Bit[32]);
         var n2 = new Word(new Bit[32]);
         n1.set(5);
-        n2.set(566);
+        n2.set(-7);
         System.out.println(ALU.add2(n1,n2).getSigned());
+    }
+        @Test public void mul() {
+        var n1 = new Word(new Bit[32]);
+        var n2 = new Word(new Bit[32]);
+        n1.set(-5);
+        n2.set(-5);
+        System.out.println(ALU.add4(n1,n2).getSigned());
     }
 }
