@@ -20,6 +20,14 @@ public class ALU {
             new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false),
             new Bit(false), new Bit(false), new Bit(false),
     });
+    private static final Word ZERO = new Word(new Bit[] {
+            new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false),
+            new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false),
+            new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false),
+            new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false),
+            new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false),
+            new Bit(false), new Bit(false),
+    });
 
     public Word op1;
     public Word op2;
@@ -53,18 +61,21 @@ public class ALU {
     }
 
     protected static Word add2(Word a, Word b) {
-        Bit[] car = IntStream.range(0, 32).boxed().reduce(new Tuple<>(new Bit[32], new Bit(false)), (tuple , i) -> {
+        Bit[] car = IntStream.range(0, 32).boxed().reduce(new Tuple<>(new Bit[32], new Bit(false)), (tuple, i) -> {
             var x = a.getBit(i);
             var y = b.getBit(i);
             var cin = tuple.cdr;
-            tuple.car[i] = x.xor(y.xor(cin));
-            var cout = x.and(y.or(x.xor(y).and(cin)));
+            tuple.car[i] = x.xor(y).xor(cin);
+            var cout = x.and(y).or(x.xor(y).and(cin));
             return new Tuple<>(tuple.car, cout);
         }, (i, x) -> x).car;
         return new Word(car);
     }
 
-    private Word add4(Word a, Word b) {
-        return null;
+    // add4 should realy take 4 operands and add them together
+    // not the thing we use for multiplication
+    protected static Word add4(Word a, Word b) {
+        return IntStream.range(0, 32).boxed().filter(i->b.getBit(i).getValue()).map(i->a.leftShift(i)).reduce(ALU::add2).get();
+        
     }
 }
