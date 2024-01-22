@@ -14,6 +14,8 @@ public class Processor {
     private Word IF;
     private Word IC;
 
+    private ALU alu;
+
     public Processor() {
         PC.set(0);
         SP.set(1024);
@@ -82,7 +84,28 @@ public class Processor {
         THREER,
     }
 
+    private static enum InstructionCode {
+        MATH, BRANCH, CALL, PUSH, LOAD, STORE, POP
+    }
+
     private static record Tuple<T, U>(T fst, U snd) {
+    }
+
+    private static record Triple<T, U, V>(T fst, U snd, V thrd) {
+    }
+
+    private InstructionCode getInstructionCode() {
+        return switch (new Triple<>(IC.getBit(1).getValue(), IC.getBit(1).getValue(), IC.getBit(1).getValue())) {
+            case Triple(var fst, var snd, var thrd) when fst && snd && thrd -> throw new RuntimeException();
+            case Triple(var fst, var snd, var thrd) when snd && thrd -> InstructionCode.POP;
+            case Triple(var fst, var snd, var thrd) when fst && thrd -> InstructionCode.STORE;
+            case Triple(var fst, var snd, var thrd) when snd && fst -> InstructionCode.PUSH;
+            case Triple(var fst, var snd, var thrd) when thrd -> InstructionCode.LOAD;
+            case Triple(var fst, var snd, var thrd) when snd -> InstructionCode.CALL;
+            case Triple(var fst, var snd, var thrd) when fst -> InstructionCode.BRANCH;
+            default -> throw new IllegalArgumentException("Unexpected value: "
+                    + new Triple<>(IC.getBit(1).getValue(), IC.getBit(1).getValue(), IC.getBit(1).getValue()));
+        };
     }
 
     private InstructionFormat getInstructionFormat() {
@@ -96,6 +119,31 @@ public class Processor {
     }
 
     private void execute() {
+        switch (getInstructionCode()) {
+            case CALL -> throw new UnsupportedOperationException("Unimplemented case: " + getInstructionCode());
+            case LOAD -> throw new UnsupportedOperationException("Unimplemented case: " + getInstructionCode());
+            case MATH -> {
+                if (getInstructionFormat() == InstructionFormat.ZEROR) {
+                    halted.set(true);
+                } else {
+                    // TODO: how get register and set op1. op2 to right register
+                    var op = new Bit[] {
+                            Function.getBit(0).clone(),
+                            Function.getBit(1).clone(),
+                            Function.getBit(2).clone(),
+                            Function.getBit(3).clone(),
+                    };
+                    // TODO: maybe reverse op
+                    alu.doOperation(op);
+
+                }
+            }
+            case POP -> throw new UnsupportedOperationException("Unimplemented case: " + getInstructionCode());
+            case PUSH -> throw new UnsupportedOperationException("Unimplemented case: " + getInstructionCode());
+            case STORE -> throw new UnsupportedOperationException("Unimplemented case: " + getInstructionCode());
+            case BRANCH -> throw new UnsupportedOperationException("Unimplemented case: " + getInstructionCode());
+            default -> throw new IllegalArgumentException("Unexpected value: " + getInstructionCode());
+        }
     }
 
     private void store() {
