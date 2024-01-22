@@ -67,40 +67,71 @@ public class UnitTests {
 
     private static void compareRange(int lowerInclusive, int higherExclusive, IntConsumer doer, IntConsumer doer2,
             String name) {
-        var t1 = timeOperation(() -> IntStream.range(lowerInclusive, higherExclusive).forEach(doer));
-        var t2 = timeOperation(() -> IntStream.range(lowerInclusive, higherExclusive).forEach(doer2));
+        var t1 = timeOperation(() -> IntStream.range(lowerInclusive, higherExclusive).parallel().forEach(doer));
+        var t2 = timeOperation(() -> IntStream.range(lowerInclusive, higherExclusive).parallel().forEach(doer2));
 
         System.out.println(name + " orginal:" + t1.toMillis() + " new:" + t2.toMillis());
     }
 
     @Test
     public void intToWord() {
-
-        compareRange(-2147483648, -2140000000, i -> {
-            var word = new Word(FALSE_BITS);
+        compareRange(-2147483648, -1073741824, i -> {
+            var word = new Word(FALSE_BITS.clone());
             word.set2(i);
-            assertEquals(i, word.getSigned());
+            assertEquals(i, word.getSigned2());
         },
                 (i -> {
-                    var word = new Word(FALSE_BITS);
+                    var word = new Word(FALSE_BITS.clone());
                     word.set(i);
-                    assertEquals(i, word.getSigned2());
+                    assertEquals(i, word.getSigned());
                 }), "signed");
-
+                System.out.println(-1073741824);
+        compareRange(-1073741823, 0, i -> {
+            var word = new Word(FALSE_BITS.clone());
+            word.set2(i);
+            assertEquals(i, word.getSigned2());
+        },
+                (i -> {
+                    var word = new Word(FALSE_BITS.clone());
+                    word.set(i);
+                    assertEquals(i, word.getSigned());
+                }), "signed");
+                System.out.println(0);
+        compareRange(1, 1073741823, i -> {
+            var word = new Word(FALSE_BITS.clone());
+            word.set2(i);
+            assertEquals(i, word.getSigned2());
+        },
+                (i -> {
+                    var word = new Word(FALSE_BITS.clone());
+                    word.set(i);
+                    assertEquals(i, word.getSigned());
+                }), "signed");
+                System.out.println(1073741824);
+        compareRange(1073741824, 2147483647, i -> {
+            var word = new Word(FALSE_BITS.clone());
+            word.set2(i);
+            assertEquals(i, word.getSigned2());
+        },
+                (i -> {
+                    var word = new Word(FALSE_BITS.clone());
+                    word.set(i);
+                    assertEquals(i, word.getSigned());
+                }), "signed");
     }
 
     @Test
     public void shift() {
 
         compareRange(0, 32, i -> {
-            var word = new Word(TRUE_BITS);
+            var word = new Word(TRUE_BITS.clone());
             word.set(i);
             word = word.leftShift(i);
             assertEquals(i << i, word.getSigned());
         },
                 (i -> {
 
-                    var word = new Word(TRUE_BITS);
+                    var word = new Word(TRUE_BITS.clone());
                     word.set(i);
                     word = word.leftShift2(i);
                     assertEquals(i << i, word.getSigned2());
@@ -109,19 +140,39 @@ public class UnitTests {
 
     }
 
+    @Test
+    public void add() {
+        var n1 = new Word(new Bit[32]);
+        var n2 = new Word(new Bit[32]);
+        var alu = new ALU();
 
-    @Test public void add() {
-        var n1 = new Word(new Bit[32]);
-        var n2 = new Word(new Bit[32]);
-        n1.set(5);
-        n2.set(-7);
-        System.out.println(ALU.add2(n1,n2).getSigned());
+        n1.set(7);
+        n2.set(7);
+        alu.op1 = n1;
+        alu.op2 = n2;
+        alu.doOperation( new Bit[] { new Bit(true), new Bit(true), new Bit(true), new Bit(true) });
+        System.out.println(alu.result.getSigned());
     }
-        @Test public void mul() {
-        var n1 = new Word(new Bit[32]);
-        var n2 = new Word(new Bit[32]);
-        n1.set(-5);
-        n2.set(-5);
-        System.out.println(ALU.add4(n1,n2).getSigned());
+
+    @Test
+    public void mul() {
+
+        compareRange(1000000, 10000000, i -> {
+            var n1 = new Word(new Bit[32]);
+            var n2 = new Word(new Bit[32]);
+            n1.set2(-i);
+            n2.set2(-i);
+            assertEquals(i * i, ALU.mul(n1, n2).getSigned2());
+        },
+                (i -> {
+
+                    var n1 = new Word(new Bit[32]);
+                    var n2 = new Word(new Bit[32]);
+                    n1.set2(-i);
+                    n2.set2(-i);
+                    assertEquals(i * i, ALU.add4(n1, n2).getSigned2());
+
+                }), "signed");
+
     }
 }
