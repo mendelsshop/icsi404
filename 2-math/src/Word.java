@@ -153,6 +153,19 @@ public class Word {
 						.sum();
 	}
 
+	private static record Tuple<T, U>(T fst, U snd) {
+	}
+
+	public Word negate() {
+		var notted = not();
+		return new Word(
+				Stream.iterate(0, i -> i < 32, i -> i + 1).reduce(new Tuple<>(new Bit(true), new Bit[32]), (t, i) -> {
+					t.snd[i] = notted.getBit(i).or(t.fst);
+					return new Tuple<>(t.fst.and(notted.getBit(i)), t.snd);
+				}, (x, y) -> y).snd);
+
+	}
+
 	public int getSigned2() {
 		var res = bits[31].getValue() ? -2147483648 : 0;
 		for (int i = 0; i < 31; i++) {
