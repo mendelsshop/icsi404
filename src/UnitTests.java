@@ -175,4 +175,12 @@ public class UnitTests {
                 }), "signed");
 
     }
+
+
+    @Test public void decode() {
+        System.out.println(Processor.getNBits(new Word(new Bit[] {
+                True, True, True, False, True, True, True, True, True, True, True, True, True, True, True, True, True, True,
+                True, True, True, True, True, True, True, True, True, True, True, True, True, True,
+        }).clone(), 6, 3));
+    }
 }

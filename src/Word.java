@@ -269,6 +269,6 @@ public class Word {
 
 	@Override
 	protected Word clone() {
-		return new Word(bits).clone();
+		return new Word(bits.clone());
 	}
 }
