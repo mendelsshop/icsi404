@@ -1,6 +1,12 @@
+package Computer;
+
+import static Utils.Utils.getZero;
+
 import java.util.Arrays;
 import java.util.function.Function;
 import java.util.stream.IntStream;
+
+import Utils.Utils.*;
 
 public class ALU {
 
@@ -15,23 +21,17 @@ public class ALU {
     private static final Bit[] MUL = new Bit[] { new Bit(false), new Bit(true), new Bit(true), new Bit(true) };
 
     private static final Word smallestBitMask = new Word(new Bit[] {
-            new Bit(true), new Bit(true), new Bit(true), new Bit(true), new Bit(true),
+            new Bit(true), new Bit(true), new Bit(true), new Bit(true), new Bit(true), new Bit(false), new Bit(false),
             new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false),
             new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false),
             new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false),
             new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false),
-            new Bit(false), new Bit(false), new Bit(false),
+            new Bit(false),
     });
 
     public Word op1;
     public Word op2;
     public Word result;
-
-    private record Tuple<T, U>(T fst, U snd) {
-    }
-
-    private record Triple<T, U, V>(T fst, U snd, V thrd) {
-    }
 
     public void doOperation(Bit[] operation) {
         if (Arrays.equals(operation, AND)) {
@@ -66,19 +66,19 @@ public class ALU {
         Bit[] fst = IntStream.range(0, 32).boxed().reduce(new Tuple<>(new Bit[32], new Bit(false)), (tuple, i) -> {
             var x = a.getBit(i);
             var y = b.getBit(i);
-            var cin = tuple.snd;
-            tuple.fst[i] = x.xor(y).xor(cin);
+            var cin = tuple.snd();
+            tuple.fst()[i] = x.xor(y).xor(cin);
             var cout = x.and(y).or(x.xor(y).and(cin));
-            return new Tuple<>(tuple.fst, cout);
-        }, (i, x) -> x).fst;
+            return new Tuple<>(tuple.fst(), cout);
+        }, (i, x) -> x).fst();
         return new Word(fst);
     }
 
     // add4 should realy take 4 operands and add them together
     // not the thing we use for multiplication
-    protected static Word add4(Word a, Word b) {
+    public static Word add4(Word a, Word b) {
         return IntStream.range(0, 32).boxed().filter(i -> b.getBit(i).getValue()).map(i -> a.leftShift2(i))
-                .reduce(Utils.getZero(), ALU::add2);
+                .reduce(getZero(), ALU::add2);
 
     }
 
@@ -92,17 +92,18 @@ public class ALU {
         Bit[] fst = IntStream.range(0, 32).boxed()
                 .reduce(new Tuple<>(new Bit[32], new Triple<>(new Bit(false), new Bit(false), new Bit(false))),
                         (tuple, i) -> {
-                            var s1 = fullAdder(a.getBit(i), b.getBit(i), tuple.snd.fst);
-                            var s2 = fullAdder(c.getBit(i), d.getBit(i), tuple.snd.snd);
-                            var s3 = fullAdder(s1.fst, s2.fst, tuple.snd.thrd);
-                            tuple.fst[i] = s3.fst;
-                            return new Tuple<>(tuple.fst, new Triple<>(s1.snd, s2.snd, s3.snd));
-                        }, (i, x) -> x).fst;
+                            var s1 = fullAdder(a.getBit(i), b.getBit(i), tuple.snd().fst());
+                            var s2 = fullAdder(c.getBit(i), d.getBit(i), tuple.snd().snd());
+                            var s3 = fullAdder(s1.fst(), s2.fst(), tuple.snd().thrd());
+                            tuple.fst()[i] = s3.fst();
+                            return new Tuple<>(tuple.fst(), new Triple<>(s1.snd(), s2.snd(), s3.snd()));
+                        }, (i, x) -> x)
+                .fst();
         return new Word(fst);
     }
 
-    protected static Word mul(Word a, Word b) {
-        Function<Integer, Word> indexToWord = i -> b.getBit(i).getValue() ? a.leftShift2(i) : Utils.getZero();
+    public static Word mul(Word a, Word b) {
+        Function<Integer, Word> indexToWord = i -> b.getBit(i).getValue() ? a.leftShift2(i) : getZero();
         return add2(
                 add4_real(
                         add4_real(indexToWord.apply(0), indexToWord.apply(1), indexToWord.apply(2),
