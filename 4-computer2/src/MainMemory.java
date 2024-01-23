@@ -1,5 +1,5 @@
 public class MainMemory {
-    static final Bit[] FALSE_BITS = new Bit[] {
+    private static Word ZERO = new Word(new Bit[] {
             new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false),
             new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false),
             new Bit(false), new Bit(false), new Bit(false),
@@ -7,8 +7,7 @@ public class MainMemory {
             new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false),
             new Bit(false), new Bit(false), new Bit(false),
             new Bit(false), new Bit(false),
-    };
-    private static Word ZERO = new Word(FALSE_BITS);
+    });
     private static Word MEMORY[] = new Word[] {
             ZERO.clone(), ZERO.clone(), ZERO.clone(), ZERO.clone(), ZERO.clone(), ZERO.clone(), ZERO.clone(),
             ZERO.clone(), ZERO.clone(), ZERO.clone(), ZERO.clone(), ZERO.clone(), ZERO.clone(), ZERO.clone(),

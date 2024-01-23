@@ -5,6 +5,32 @@ public class Processor {
     private Word SP = new Word(new Bit[32]);
     private Word currentInstruction = new Word(new Bit[32]);
     private Bit halted = new Bit(false);
+    private static Word ZERO = new Word(new Bit[] {
+            new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false),
+            new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false),
+            new Bit(false), new Bit(false), new Bit(false),
+            new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false),
+            new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false),
+            new Bit(false), new Bit(false), new Bit(false),
+            new Bit(false), new Bit(false),
+    });
+    private Word[] registers = new Word[] {
+            ZERO.clone(), ZERO.clone(), ZERO.clone(), ZERO.clone(), ZERO.clone(), ZERO.clone(), ZERO.clone(),
+            ZERO.clone(), ZERO.clone(), ZERO.clone(), ZERO.clone(), ZERO.clone(), ZERO.clone(), ZERO.clone(),
+            ZERO.clone(), ZERO.clone(), ZERO.clone(), ZERO.clone(), ZERO.clone(), ZERO.clone(), ZERO.clone(),
+            ZERO.clone(), ZERO.clone(), ZERO.clone(), ZERO.clone(), ZERO.clone(), ZERO.clone(), ZERO.clone(),
+            ZERO.clone(), ZERO.clone(), ZERO.clone(), ZERO.clone(),
+    };
+
+    private void setRegister(int index, Word contents) {
+        if (index != 0) {
+            registers[index] = contents.clone();
+        }
+    }
+
+    private Word getRegister(int index) {
+        return registers[index].clone();
+    }
 
     private Word Immediate;
     private Word Rs1;
@@ -52,10 +78,6 @@ public class Processor {
             }
             default -> throw new IllegalArgumentException("Unexpected value: " + getInstructionFormat());
         }
-    }
-
-    private void setRDAndFunction() {
-        var currentInstruction = this.currentInstruction.rightShift(5);
     }
 
     private Word getNBits(int size, int shift) {
@@ -119,20 +141,39 @@ public class Processor {
     }
 
     private void execute() {
+        var op = new Bit[] {
+                Function.getBit(0).clone(),
+                Function.getBit(1).clone(),
+                Function.getBit(2).clone(),
+                Function.getBit(3).clone(),
+        };
         switch (getInstructionCode()) {
             case CALL -> throw new UnsupportedOperationException("Unimplemented case: " + getInstructionCode());
             case LOAD -> throw new UnsupportedOperationException("Unimplemented case: " + getInstructionCode());
             case MATH -> {
+
+                switch (getInstructionFormat()) {
+                    case ZEROR -> halted.set(true);
+                    case ONER -> {
+                        // TODO: do we sign extend immidiate
+                        // do we store immidiate in the register (probably not) or do we set alu.result
+                        // to immidiate and let store do the work (what im doing)
+                        alu.result = Immediate;
+                    }
+                    case THREER -> {
+                        // TODO: how to get rs1, rs2 from word
+                        alu.doOperation(op);
+                    }
+                    case TWOR ->
+                        // TODO: how to get rs1 from word
+                        // put rs1 in op1 and op2
+                        throw new UnsupportedOperationException("Unimplemented case: " + getInstructionFormat());
+                    default -> throw new IllegalArgumentException("Unexpected value: " + getInstructionFormat());
+                }
                 if (getInstructionFormat() == InstructionFormat.ZEROR) {
                     halted.set(true);
                 } else {
                     // TODO: how get register and set op1. op2 to right register
-                    var op = new Bit[] {
-                            Function.getBit(0).clone(),
-                            Function.getBit(1).clone(),
-                            Function.getBit(2).clone(),
-                            Function.getBit(3).clone(),
-                    };
                     // TODO: maybe reverse op
                     alu.doOperation(op);
 
@@ -147,6 +188,8 @@ public class Processor {
     }
 
     private void store() {
+        // TODO: maybe dont store if its a halt
+        // TODO: how to get register from Rd
     }
 
     private void fetch() {
