@@ -1,3 +1,4 @@
+package Computer;
 public class Processor {
     private Word PC = new Word(new Bit[32]);
     private Word SP = new Word(new Bit[32]);
