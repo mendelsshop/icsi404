@@ -1,4 +1,10 @@
+package Computer;
+
+import static Utils.Utils.getZero;
+
 import java.util.function.Function;
+
+import Utils.Utils.*;
 
 public class Processor {
     private Word PC = new Word(new Bit[32]);
@@ -7,16 +13,10 @@ public class Processor {
     private Bit halted = new Bit(false);
 
     private Word[] registers = new Word[] {
-            Utils.getZero(), Utils.getZero(), Utils.getZero(), Utils.getZero(), Utils.getZero(), Utils.getZero(),
-            Utils.getZero(),
-            Utils.getZero(), Utils.getZero(), Utils.getZero(), Utils.getZero(), Utils.getZero(), Utils.getZero(),
-            Utils.getZero(),
-            Utils.getZero(), Utils.getZero(), Utils.getZero(), Utils.getZero(), Utils.getZero(), Utils.getZero(),
-            Utils.getZero(),
-            Utils.getZero(), Utils.getZero(), Utils.getZero(), Utils.getZero(), Utils.getZero(), Utils.getZero(),
-            Utils.getZero(),
-            Utils.getZero(), Utils.getZero(), Utils.getZero(), Utils.getZero(),
-    };
+            getZero(), getZero(), getZero(), getZero(), getZero(), getZero(), getZero(), getZero(), getZero(),
+            getZero(), getZero(), getZero(), getZero(), getZero(), getZero(), getZero(), getZero(), getZero(),
+            getZero(), getZero(), getZero(), getZero(), getZero(), getZero(), getZero(), getZero(), getZero(),
+            getZero(), getZero(), getZero(), getZero(), getZero(), };
 
     private void setRegister(int index, Word contents) {
         if (index != 0) {
@@ -80,7 +80,7 @@ public class Processor {
         return getNBits(currentInstruction, size, shift);
     }
 
-    protected static Word getNBits(Word word, int size, int shift) {
+    public static Word getNBits(Word word, int size, int shift) {
         Function<Integer, Bit> getMaskBit = i -> new Bit(i >= shift && i < shift + size);
         Word mask = new Word(new Bit[] {
                 getMaskBit.apply(0), getMaskBit.apply(1), getMaskBit.apply(2), getMaskBit.apply(3), getMaskBit.apply(4),
@@ -104,12 +104,6 @@ public class Processor {
 
     private static enum InstructionCode {
         MATH, BRANCH, CALL, PUSH, LOAD, STORE, POP
-    }
-
-    private static record Tuple<T, U>(T fst, U snd) {
-    }
-
-    private static record Triple<T, U, V>(T fst, U snd, V thrd) {
     }
 
     private InstructionCode getInstructionCode() {

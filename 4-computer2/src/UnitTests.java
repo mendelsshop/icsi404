@@ -1,4 +1,6 @@
-import static org.junit.Assert.*;
+
+import static Utils.Utils.*;
+import static org.junit.Assert.assertEquals;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -7,44 +9,43 @@ import java.util.stream.IntStream;
 
 import org.junit.Test;
 
+import Computer.*;
+
 public class UnitTests {
 
     // Word Tests
     @Test
     public void BasicWordNot() {
-        assertEquals(Utils.getZero(), Utils.getBigNumber().not());
+        assertEquals(getZero(), getBigNumber().not());
     }
 
     @Test
     public void BasicWordAnd() {
-        assertEquals(Utils.getZero(), Utils.getBigNumber().and(Utils.getZero()));
+        assertEquals(getZero(), getBigNumber().and(getZero()));
     }
 
     @Test
     public void BasicWordOr() {
-        assertEquals(Utils.getBigNumber(), Utils.getZero().or(Utils.getBigNumber()));
+        assertEquals(getBigNumber(), getZero().or(getBigNumber()));
     }
 
     @Test
     public void BasicWordXor() {
-        assertEquals(Utils.getZero(), Utils.getBigNumber().xor(Utils.getBigNumber()));
+        assertEquals(getZero(), getBigNumber().xor(getBigNumber()));
     }
 
     @Test
     public void BasicWordSet() {
         var big_number = new Word(
-                new Bit[] { Utils.getTrue(), Utils.getFalse(), Utils.getFalse(), Utils.getFalse(), Utils.getFalse(),
-                        Utils.getFalse(), Utils.getFalse(), Utils.getFalse(), Utils.getFalse(), Utils.getFalse(),
-                        Utils.getFalse(), Utils.getFalse(), Utils.getFalse(), Utils.getFalse(), Utils.getFalse(),
-                        Utils.getFalse(), Utils.getFalse(), Utils.getFalse(),
-                        Utils.getFalse(), Utils.getFalse(), Utils.getFalse(), Utils.getFalse(), Utils.getFalse(),
-                        Utils.getFalse(), Utils.getFalse(),
-                        Utils.getFalse(), Utils.getFalse(), Utils.getFalse(), Utils.getFalse(), Utils.getFalse(),
-                        Utils.getFalse(), Utils.getFalse(), });
+                new Bit[] { getTrue(), getFalse(), getFalse(), getFalse(), getFalse(), getFalse(), getFalse(),
+                        getFalse(), getFalse(), getFalse(), getFalse(), getFalse(), getFalse(), getFalse(), getFalse(),
+                        getFalse(), getFalse(), getFalse(), getFalse(), getFalse(), getFalse(), getFalse(), getFalse(),
+                        getFalse(), getFalse(), getFalse(), getFalse(), getFalse(), getFalse(), getFalse(), getFalse(),
+                        getFalse(), });
         big_number.set(2147483647);
         System.out.println(big_number);
         assertEquals(-6, big_number.getSigned());
-        assertEquals(Utils.getZero(), big_number);
+        assertEquals(getZero(), big_number);
     }
 
     private static Duration timeOperation(Runnable r) {
@@ -65,45 +66,45 @@ public class UnitTests {
     @Test
     public void intToWord() {
         compareRange(-2147483648, -1073741824, i -> {
-            var word = new Word(Utils.getFalseBits());
+            var word = new Word(getFalseBits());
             word.set2(i);
             assertEquals(i, word.getSigned2());
         },
                 (i -> {
-                    var word = new Word(Utils.getFalseBits());
+                    var word = new Word(getFalseBits());
                     word.set(i);
                     assertEquals(i, word.getSigned());
                 }), "signed");
         System.out.println(-1073741824);
         compareRange(-1073741823, 0, i -> {
-            var word = new Word(Utils.getFalseBits());
+            var word = new Word(getFalseBits());
             word.set2(i);
             assertEquals(i, word.getSigned2());
         },
                 (i -> {
-                    var word = new Word(Utils.getFalseBits());
+                    var word = new Word(getFalseBits());
                     word.set(i);
                     assertEquals(i, word.getSigned());
                 }), "signed");
         System.out.println(0);
         compareRange(1, 1073741823, i -> {
-            var word = new Word(Utils.getFalseBits());
+            var word = new Word(getFalseBits());
             word.set2(i);
             assertEquals(i, word.getSigned2());
         },
                 (i -> {
-                    var word = new Word(Utils.getFalseBits());
+                    var word = new Word(getFalseBits());
                     word.set(i);
                     assertEquals(i, word.getSigned());
                 }), "signed");
         System.out.println(1073741824);
         compareRange(1073741824, 2147483647, i -> {
-            var word = new Word(Utils.getFalseBits());
+            var word = new Word(getFalseBits());
             word.set2(i);
             assertEquals(i, word.getSigned2());
         },
                 (i -> {
-                    var word = new Word(Utils.getFalseBits());
+                    var word = new Word(getFalseBits());
                     word.set(i);
                     assertEquals(i, word.getSigned());
                 }), "signed");
@@ -113,14 +114,14 @@ public class UnitTests {
     public void shift() {
 
         compareRange(0, 32, i -> {
-            var word = new Word(Utils.getTrueBits());
+            var word = new Word(getTrueBits());
             word.set(i);
             word = word.leftShift(i);
             assertEquals(i << i, word.getSigned());
         },
                 (i -> {
 
-                    var word = new Word(Utils.getTrueBits());
+                    var word = new Word(getTrueBits());
                     word.set(i);
                     word = word.leftShift2(i);
                     assertEquals(i << i, word.getSigned2());
@@ -168,14 +169,9 @@ public class UnitTests {
     @Test
     public void decode() {
         System.out.println(Processor.getNBits(new Word(new Bit[] {
-                Utils.getTrue(), Utils.getTrue(), Utils.getTrue(), Utils.getFalse(), Utils.getTrue(), Utils.getTrue(),
-                Utils.getTrue(), Utils.getTrue(),
-                Utils.getTrue(), Utils.getTrue(), Utils.getTrue(), Utils.getTrue(), Utils.getTrue(), Utils.getTrue(),
-                Utils.getTrue(), Utils.getTrue(),
-                Utils.getTrue(), Utils.getTrue(),
-                Utils.getTrue(), Utils.getTrue(), Utils.getTrue(), Utils.getTrue(), Utils.getTrue(), Utils.getTrue(),
-                Utils.getTrue(), Utils.getTrue(),
-                Utils.getTrue(), Utils.getTrue(), Utils.getTrue(), Utils.getTrue(), Utils.getTrue(), Utils.getTrue(),
-        }).clone(), 6, 3));
+                getTrue(), getTrue(), getTrue(), getFalse(), getTrue(), getTrue(), getTrue(), getTrue(), getTrue(),
+                getTrue(), getTrue(), getTrue(), getTrue(), getTrue(), getTrue(), getTrue(), getTrue(), getTrue(),
+                getTrue(), getTrue(), getTrue(), getTrue(), getTrue(), getTrue(), getTrue(), getTrue(), getTrue(),
+                getTrue(), getTrue(), getTrue(), getTrue(), getTrue(), }).clone(), 6, 3));
     }
 }

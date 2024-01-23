@@ -1,3 +1,7 @@
+package Computer;
+
+import static Utils.Utils.checkBitRange;
+
 import java.util.Arrays;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -18,7 +22,7 @@ public class Word {
 	private Bit[] bits;
 
 	public Word(Bit[] startBits) {
-		Utils.checkBitRange(startBits.length);
+		checkBitRange(startBits.length);
 		bits = startBits;
 	}
 
@@ -45,12 +49,12 @@ public class Word {
 	}
 
 	public Bit getBit(int i) {
-		Utils.checkBitRange(i);
+		checkBitRange(i);
 		return new Bit(bits[i].getValue());
 	}
 
 	public void setBit(int i, Bit bit) {
-		Utils.checkBitRange(i);
+		checkBitRange(i);
 		// TODO: time for clone?
 		bits[i] = new Bit(bit.getValue());
 	}
@@ -94,7 +98,7 @@ public class Word {
 	}
 
 	public Word leftShift(int amount) {
-		Utils.checkBitRange(amount);
+		checkBitRange(amount);
 		var zerod = Stream.generate(() -> new Bit(false)).limit(amount);
 		var shifted = Arrays.stream(bits).limit(32 - amount).map(b -> new Bit(b.getValue()));
 		return new Word(Stream.concat(zerod, shifted)
@@ -102,7 +106,7 @@ public class Word {
 	}
 
 	public Word leftShift2(int amount) {
-		Utils.checkBitRange(amount);
+		checkBitRange(amount);
 		var res = new Bit[32];
 		var i = 0;
 		for (; i < amount; i++) {
@@ -115,7 +119,7 @@ public class Word {
 	}
 
 	public Word rightShift2(int amount) {
-		Utils.checkBitRange(amount);
+		checkBitRange(amount);
 		var res = new Bit[32];
 		var i = 0;
 		for (; i < 32 - amount; i++) {
@@ -128,7 +132,7 @@ public class Word {
 	}
 
 	public Word rightShift(int amount) {
-		Utils.checkBitRange(amount);
+		checkBitRange(amount);
 		var zerod = Stream.generate(() -> new Bit(false)).limit(amount);
 		var shifted = Arrays.stream(bits).skip(amount).map(b -> new Bit(b.getValue()));
 		return new Word(Stream.concat(shifted, zerod)
@@ -144,22 +148,6 @@ public class Word {
 		return (bits[31].getValue() ? -2147483648 : 0)
 				+ IntStream.range(0, 31).map((i) -> (bits[i].getValue() ? (int) Math.pow(2, i) : 0))
 						.sum();
-	}
-
-	private static record Tuple<T, U>(T fst, U snd) {
-	}
-
-	public Word negate() {
-		return not().increment();
-
-	}
-
-	public Word increment() {
-		return new Word(
-				Stream.iterate(0, i -> i < 32, i -> i + 1).reduce(new Tuple<>(new Bit(true), new Bit[32]), (t, i) -> {
-					t.snd[i] = getBit(i).or(t.fst);
-					return new Tuple<>(t.fst.and(getBit(i)), t.snd);
-				}, (x, y) -> y).snd);
 	}
 
 	public int getSigned2() {
@@ -261,7 +249,7 @@ public class Word {
 	}
 
 	@Override
-	protected Word clone() {
+	public Word clone() {
 		return new Word(bits.clone());
 	}
 }
