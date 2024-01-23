@@ -1,6 +1,6 @@
 package Computer;
 
-import static Utils.Utils.*;
+import static Utils.Utils.checkBitRange;
 
 import java.util.Arrays;
 import java.util.function.BiFunction;
@@ -8,6 +8,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+
+import Utils.Utils.Tuple;
 
 public class Word {
 	// we often think of binary as rtl:
@@ -19,22 +21,11 @@ public class Word {
 	// .. last bit the 4294967296s placw will be index 31
 	// this can sometimes be a bit (no pun intended) counterintuitive for bit
 	// shifiting and to/from decimal conversions
-
-	// another note:
-	// most methods here have duplicates meaning often named like name2
-	// they are a more perfromant, but less elegant soloution to same problem
 	private Bit[] bits;
 
 	public Word(Bit[] startBits) {
-		if (startBits.length != 32) {
-			throw new IndexOutOfBoundsException();
-		}
+		checkBitRange(startBits.length);
 		bits = startBits;
-	}
-
-	public Word(int i) {
-		bits = new Bit[32];
-		set(i);
 	}
 
 	@Override
@@ -60,12 +51,12 @@ public class Word {
 	}
 
 	public Bit getBit(int i) {
-		checkBitRange0(i);
+		checkBitRange(i);
 		return new Bit(bits[i].getValue());
 	}
 
 	public void setBit(int i, Bit bit) {
-		checkBitRange0(i);
+		checkBitRange(i);
 		// TODO: time for clone?
 		bits[i] = new Bit(bit.getValue());
 	}
@@ -109,7 +100,7 @@ public class Word {
 	}
 
 	public Word leftShift(int amount) {
-		checkBitRange0(amount);
+		checkBitRange(amount);
 		var zerod = Stream.generate(() -> new Bit(false)).limit(amount);
 		var shifted = Arrays.stream(bits).limit(32 - amount).map(b -> new Bit(b.getValue()));
 		return new Word(Stream.concat(zerod, shifted)
@@ -117,7 +108,7 @@ public class Word {
 	}
 
 	public Word leftShift2(int amount) {
-		checkBitRange0(amount);
+		checkBitRange(amount);
 		var res = new Bit[32];
 		var i = 0;
 		for (; i < amount; i++) {
@@ -130,7 +121,7 @@ public class Word {
 	}
 
 	public Word rightShift2(int amount) {
-		checkBitRange0(amount);
+		checkBitRange(amount);
 		var res = new Bit[32];
 		var i = 0;
 		for (; i < 32 - amount; i++) {
@@ -143,7 +134,7 @@ public class Word {
 	}
 
 	public Word rightShift(int amount) {
-		checkBitRange0(amount);
+		checkBitRange(amount);
 		var zerod = Stream.generate(() -> new Bit(false)).limit(amount);
 		var shifted = Arrays.stream(bits).skip(amount).map(b -> new Bit(b.getValue()));
 		return new Word(Stream.concat(shifted, zerod)
@@ -151,7 +142,6 @@ public class Word {
 	}
 
 	@Override
-	// like my comment about rtl vs ltr above we output the strings as being ltr
 	public String toString() {
 		return Arrays.stream(bits).map(Bit::toString).collect(Collectors.joining(","));
 	}
@@ -163,37 +153,16 @@ public class Word {
 	}
 
 	public Word negate() {
-		var res = not();
-		res.increment();
-		return res;
+		return not().increment();
+
 	}
 
-	public Word add1() {
-		var res = clone();
-		res.increment();
-		return res;
-	}
-
-	// increment is just a 32 ripple half adder
-	public void increment() {
-		Stream.iterate(0, i -> i < 32, i -> i + 1).reduce((new Bit(true)), (t, i) -> {
-			// order matters if you get carry after setting bit you are doing it wronmg (the
-			// joys of mutation)
-			var carry = t.and(getBit(i));
-			setBit(i, getBit(i).xor(t));
-			return (carry);
-		}, (x, y) -> y);
-	}
-
-	public void increment2() {
-		var carry = new Bit(true);
-		for (int i = 0; i < 32; i++) {
-			// order matters if you get carry after setting bit you are doing it wronmg (the
-			// joys of mutation)
-			Bit bit = getBit(i).xor(carry);
-			carry = getBit(i).and(carry);
-			bits[i] = bit;
-		}
+	public Word increment() {
+		return new Word(
+				Stream.iterate(0, i -> i < 32, i -> i + 1).reduce(new Tuple<>(new Bit(true), new Bit[32]), (t, i) -> {
+					t.snd()[i] = getBit(i).or(t.fst());
+					return new Tuple<>(t.fst().and(getBit(i)), t.snd());
+				}, (x, y) -> y).snd());
 	}
 
 	public int getSigned2() {
@@ -204,10 +173,10 @@ public class Word {
 		return res;
 	}
 
-	public long getUnsigned2() {
-		long res = 0;
+	public int getUnsigned2() {
+		var res = 0;
 		for (int i = 0; i < 32; i++) {
-			res += bits[i].getValue() ? (long) Math.pow(2, i) : 0;
+			res += bits[i].getValue() ? (int) Math.pow(2, i) : 0;
 		}
 		return res;
 	}
@@ -264,8 +233,7 @@ public class Word {
 
 	private Word map(BiFunction<Bit, Bit, Bit> mapper, Word other) {
 		return new Word(
-				Stream.iterate(0, i -> i < 32, i -> i + 1)
-						.map(i -> mapper.apply(bits[i], other.bits[i]))
+				Stream.iterate(0, i -> i < 32, i -> i + 1).map(i -> mapper.apply(bits[i], other.bits[i]))
 						.collect(Collectors.toList()).toArray(new Bit[32]));
 	}
 
@@ -286,9 +254,7 @@ public class Word {
 	}
 
 	public void copy(Word other) {
-		bits = (Bit[]) Arrays.stream(other.bits)
-		.map(Bit::clone)
-		.toArray(Bit[]::new);
+		bits = (Bit[]) Arrays.stream(other.bits).map(b -> new Bit(b.getValue())).toArray();
 	}
 
 	public void copy2(Word other) {
