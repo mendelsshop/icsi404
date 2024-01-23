@@ -9,53 +9,42 @@ import org.junit.Test;
 
 public class UnitTests {
 
-    static final Bit False = new Bit(false);
-    static final Bit True = new Bit(true);
-
-    static final Bit[] TRUE_BITS = new Bit[] {
-            True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True,
-            True, True, True, True, True, True, True, True, True, True, True, True, True, True,
-    };
-
-    static final Bit[] FALSE_BITS = new Bit[] {
-            False, False, False, False, False, False, False, False, False, False, False, False, False, False, False,
-            False, False, False,
-            False, False, False, False, False, False, False, False, False, False, False, False, False, False,
-    };
-
-    static final Word ZERO = new Word(FALSE_BITS);
-    static final Word BIG_NUMBER = new Word(TRUE_BITS);
-
     // Word Tests
     @Test
     public void BasicWordNot() {
-        assertEquals(ZERO, BIG_NUMBER.not());
+        assertEquals(Utils.getZero(), Utils.getBigNumber().not());
     }
 
     @Test
     public void BasicWordAnd() {
-        assertEquals(ZERO, BIG_NUMBER.and(ZERO));
+        assertEquals(Utils.getZero(), Utils.getBigNumber().and(Utils.getZero()));
     }
 
     @Test
     public void BasicWordOr() {
-        assertEquals(BIG_NUMBER, ZERO.or(BIG_NUMBER));
+        assertEquals(Utils.getBigNumber(), Utils.getZero().or(Utils.getBigNumber()));
     }
 
     @Test
     public void BasicWordXor() {
-        assertEquals(ZERO, BIG_NUMBER.xor(BIG_NUMBER));
+        assertEquals(Utils.getZero(), Utils.getBigNumber().xor(Utils.getBigNumber()));
     }
 
     @Test
     public void BasicWordSet() {
-        var big_number = new Word(new Bit[] { True, False, False, False, False, False, False, False, False, False,
-                False, False, False, False, False, False, False, False, False, False, False, False, False, False, False,
-                False, False, False, False, False, False, False, });
+        var big_number = new Word(
+                new Bit[] { Utils.getTrue(), Utils.getFalse(), Utils.getFalse(), Utils.getFalse(), Utils.getFalse(),
+                        Utils.getFalse(), Utils.getFalse(), Utils.getFalse(), Utils.getFalse(), Utils.getFalse(),
+                        Utils.getFalse(), Utils.getFalse(), Utils.getFalse(), Utils.getFalse(), Utils.getFalse(),
+                        Utils.getFalse(), Utils.getFalse(), Utils.getFalse(),
+                        Utils.getFalse(), Utils.getFalse(), Utils.getFalse(), Utils.getFalse(), Utils.getFalse(),
+                        Utils.getFalse(), Utils.getFalse(),
+                        Utils.getFalse(), Utils.getFalse(), Utils.getFalse(), Utils.getFalse(), Utils.getFalse(),
+                        Utils.getFalse(), Utils.getFalse(), });
         big_number.set(2147483647);
         System.out.println(big_number);
         assertEquals(-6, big_number.getSigned());
-        assertEquals(ZERO, big_number);
+        assertEquals(Utils.getZero(), big_number);
     }
 
     private static Duration timeOperation(Runnable r) {
@@ -67,40 +56,71 @@ public class UnitTests {
 
     private static void compareRange(int lowerInclusive, int higherExclusive, IntConsumer doer, IntConsumer doer2,
             String name) {
-        var t1 = timeOperation(() -> IntStream.range(lowerInclusive, higherExclusive).forEach(doer));
-        var t2 = timeOperation(() -> IntStream.range(lowerInclusive, higherExclusive).forEach(doer2));
+        var t1 = timeOperation(() -> IntStream.range(lowerInclusive, higherExclusive).parallel().forEach(doer));
+        var t2 = timeOperation(() -> IntStream.range(lowerInclusive, higherExclusive).parallel().forEach(doer2));
 
         System.out.println(name + " orginal:" + t1.toMillis() + " new:" + t2.toMillis());
     }
 
     @Test
     public void intToWord() {
-
-        compareRange(-2147483648, -2140000000, i -> {
-            var word = new Word(FALSE_BITS);
+        compareRange(-2147483648, -1073741824, i -> {
+            var word = new Word(Utils.getFalseBits());
             word.set2(i);
-            assertEquals(i, word.getSigned());
+            assertEquals(i, word.getSigned2());
         },
                 (i -> {
-                    var word = new Word(FALSE_BITS);
+                    var word = new Word(Utils.getFalseBits());
                     word.set(i);
-                    assertEquals(i, word.getSigned2());
+                    assertEquals(i, word.getSigned());
                 }), "signed");
-
+        System.out.println(-1073741824);
+        compareRange(-1073741823, 0, i -> {
+            var word = new Word(Utils.getFalseBits());
+            word.set2(i);
+            assertEquals(i, word.getSigned2());
+        },
+                (i -> {
+                    var word = new Word(Utils.getFalseBits());
+                    word.set(i);
+                    assertEquals(i, word.getSigned());
+                }), "signed");
+        System.out.println(0);
+        compareRange(1, 1073741823, i -> {
+            var word = new Word(Utils.getFalseBits());
+            word.set2(i);
+            assertEquals(i, word.getSigned2());
+        },
+                (i -> {
+                    var word = new Word(Utils.getFalseBits());
+                    word.set(i);
+                    assertEquals(i, word.getSigned());
+                }), "signed");
+        System.out.println(1073741824);
+        compareRange(1073741824, 2147483647, i -> {
+            var word = new Word(Utils.getFalseBits());
+            word.set2(i);
+            assertEquals(i, word.getSigned2());
+        },
+                (i -> {
+                    var word = new Word(Utils.getFalseBits());
+                    word.set(i);
+                    assertEquals(i, word.getSigned());
+                }), "signed");
     }
 
     @Test
     public void shift() {
 
         compareRange(0, 32, i -> {
-            var word = new Word(TRUE_BITS);
+            var word = new Word(Utils.getTrueBits());
             word.set(i);
             word = word.leftShift(i);
             assertEquals(i << i, word.getSigned());
         },
                 (i -> {
 
-                    var word = new Word(TRUE_BITS);
+                    var word = new Word(Utils.getTrueBits());
                     word.set(i);
                     word = word.leftShift2(i);
                     assertEquals(i << i, word.getSigned2());
@@ -108,4 +128,5 @@ public class UnitTests {
                 }), "signed");
 
     }
+
 }

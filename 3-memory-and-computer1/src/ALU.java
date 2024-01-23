@@ -22,14 +22,6 @@ public class ALU {
             new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false),
             new Bit(false), new Bit(false), new Bit(false),
     });
-    private static final Word ZERO = new Word(new Bit[] {
-            new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false),
-            new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false),
-            new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false),
-            new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false),
-            new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false),
-            new Bit(false), new Bit(false),
-    });
 
     public Word op1;
     public Word op2;
@@ -65,7 +57,7 @@ public class ALU {
         } else if (Arrays.equals(operation, MUL)) {
             result = add4(op1, op2);
         } else {
-            System.err.println("unkown" + operation[0] + operation[1] + operation [2] + operation[3]);
+            System.err.println("unkown" + operation[0] + operation[1] + operation[2] + operation[3]);
             throw new RuntimeException();
         }
     }
@@ -86,7 +78,7 @@ public class ALU {
     // not the thing we use for multiplication
     protected static Word add4(Word a, Word b) {
         return IntStream.range(0, 32).boxed().filter(i -> b.getBit(i).getValue()).map(i -> a.leftShift2(i))
-                .reduce(ZERO, ALU::add2);
+                .reduce(Utils.getZero(), ALU::add2);
 
     }
 
@@ -110,7 +102,7 @@ public class ALU {
     }
 
     protected static Word mul(Word a, Word b) {
-        Function<Integer, Word> indexToWord = i -> b.getBit(i).getValue() ? a.leftShift2(i) : ZERO;
+        Function<Integer, Word> indexToWord = i -> b.getBit(i).getValue() ? a.leftShift2(i) : Utils.getZero();
         return add2(
                 add4_real(
                         add4_real(indexToWord.apply(0), indexToWord.apply(1), indexToWord.apply(2),

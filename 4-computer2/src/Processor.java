@@ -5,21 +5,17 @@ public class Processor {
     private Word SP = new Word(new Bit[32]);
     private Word currentInstruction = new Word(new Bit[32]);
     private Bit halted = new Bit(false);
-    private static Word ZERO = new Word(new Bit[] {
-            new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false),
-            new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false),
-            new Bit(false), new Bit(false), new Bit(false),
-            new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false),
-            new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false),
-            new Bit(false), new Bit(false), new Bit(false),
-            new Bit(false), new Bit(false),
-    });
+
     private Word[] registers = new Word[] {
-            ZERO.clone(), ZERO.clone(), ZERO.clone(), ZERO.clone(), ZERO.clone(), ZERO.clone(), ZERO.clone(),
-            ZERO.clone(), ZERO.clone(), ZERO.clone(), ZERO.clone(), ZERO.clone(), ZERO.clone(), ZERO.clone(),
-            ZERO.clone(), ZERO.clone(), ZERO.clone(), ZERO.clone(), ZERO.clone(), ZERO.clone(), ZERO.clone(),
-            ZERO.clone(), ZERO.clone(), ZERO.clone(), ZERO.clone(), ZERO.clone(), ZERO.clone(), ZERO.clone(),
-            ZERO.clone(), ZERO.clone(), ZERO.clone(), ZERO.clone(),
+            Utils.getZero(), Utils.getZero(), Utils.getZero(), Utils.getZero(), Utils.getZero(), Utils.getZero(),
+            Utils.getZero(),
+            Utils.getZero(), Utils.getZero(), Utils.getZero(), Utils.getZero(), Utils.getZero(), Utils.getZero(),
+            Utils.getZero(),
+            Utils.getZero(), Utils.getZero(), Utils.getZero(), Utils.getZero(), Utils.getZero(), Utils.getZero(),
+            Utils.getZero(),
+            Utils.getZero(), Utils.getZero(), Utils.getZero(), Utils.getZero(), Utils.getZero(), Utils.getZero(),
+            Utils.getZero(),
+            Utils.getZero(), Utils.getZero(), Utils.getZero(), Utils.getZero(),
     };
 
     private void setRegister(int index, Word contents) {
