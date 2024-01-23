@@ -1,3 +1,7 @@
+package Utils;
+
+import Computer.*;
+
 public class Utils {
         private static final Bit FALSE = new Bit(false);
 
@@ -12,31 +16,18 @@ public class Utils {
         }
 
         private static final Bit[] TRUE_BITS = new Bit[] {
-                        TRUE, TRUE, TRUE, TRUE, TRUE, TRUE,
-                        TRUE,
-                        TRUE, TRUE, TRUE, TRUE, TRUE, TRUE,
-                        TRUE,
-                        TRUE, TRUE, TRUE, TRUE, TRUE, TRUE,
-                        TRUE,
-                        TRUE, TRUE, TRUE, TRUE, TRUE, TRUE,
-                        TRUE,
-                        TRUE, TRUE, TRUE, TRUE,
-        };
+                        TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE,
+                        TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE,
+                        TRUE, };
 
         public static Bit[] getTrueBits() {
                 return TRUE_BITS.clone();
         }
 
         private static final Bit[] FALSE_BITS = new Bit[] {
-                        FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,
-                        FALSE,
-                        FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,
-                        FALSE,
-                        FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,
-                        FALSE,
-                        FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,
-                        FALSE, FALSE, FALSE, FALSE, FALSE,
-        };
+                        FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,
+                        FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,
+                        FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, };
 
         public static Bit[] getFalseBits() {
                 return FALSE_BITS.clone();
