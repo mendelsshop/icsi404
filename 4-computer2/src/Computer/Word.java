@@ -24,7 +24,9 @@ public class Word {
 	private Bit[] bits;
 
 	public Word(Bit[] startBits) {
-		checkBitRange1(startBits.length);
+		if (startBits.length != 32) {
+			throw new IndexOutOfBoundsException();
+		}
 		bits = startBits;
 	}
 
