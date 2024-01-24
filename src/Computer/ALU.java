@@ -9,7 +9,6 @@ import java.util.stream.IntStream;
 import Utils.Utils.*;
 
 public class ALU {
-
     private static final Bit[] AND = new Bit[] { new Bit(true), new Bit(false), new Bit(false), new Bit(false) };
     private static final Bit[] OR = new Bit[] { new Bit(true), new Bit(false), new Bit(false), new Bit(true) };
     private static final Bit[] XOR = new Bit[] { new Bit(true), new Bit(false), new Bit(true), new Bit(false) };
@@ -51,13 +50,11 @@ public class ALU {
         } else if (Arrays.equals(operation, ADD)) {
             result = add2(op1, op2);
         } else if (Arrays.equals(operation, SUB)) {
-            System.out.println("sub");
             var negated = op2.negate();
             result = add2(op1, negated);
         } else if (Arrays.equals(operation, MUL)) {
-            result = add4(op1, op2);
+            result = mul(op1, op2);
         } else {
-            System.err.println("unkown" + operation[0] + operation[1] + operation[2] + operation[3]);
             throw new RuntimeException();
         }
     }

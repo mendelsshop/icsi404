@@ -1,5 +1,6 @@
 package Computer;
 
+import static Utils.Utils.checkBitRange;
 import static Utils.Utils.getZero;
 
 import java.util.function.Function;
@@ -24,7 +25,7 @@ public class Processor {
         }
     }
 
-    private Word getRegister(int index) {
+    public Word getRegister(int index) {
         return registers[index].clone();
     }
 
@@ -36,15 +37,12 @@ public class Processor {
     private Word IF;
     private Word IC;
 
-    private ALU alu;
+    private ALU alu = new ALU();
 
     public Processor() {
         PC.set(0);
         SP.set(1024);
     }
-    // TODO: techincally i could just do a n bit binary to decimal converter for
-    // decoding instructutions
-    // especially for registers
 
     private void decode() {
         IF = getNBits(2, 0);
@@ -56,28 +54,45 @@ public class Processor {
             case ONER -> {
                 Rd = getNBits(5, 5);
                 Function = getNBits(4, 10);
-                Immediate = currentInstruction.rightShift(18);
+                Immediate = currentInstruction.rightShift(14);
             }
-            case THREER -> {
+            case TWOR -> {
                 Rd = getNBits(5, 5);
                 Function = getNBits(4, 10);
                 Rs1 = getNBits(5, 14);
-                Immediate = currentInstruction.rightShift(13);
+                Immediate = currentInstruction.rightShift(19);
             }
-            case TWOR -> {
+            case THREER -> {
 
                 Rd = getNBits(5, 5);
                 Function = getNBits(4, 10);
-                Rs1 = getNBits(5, 14);
-                Rs2 = getNBits(5, 19);
-                Immediate = currentInstruction.rightShift(8);
+                Rs2 = getNBits(5, 14);
+                Rs1 = getNBits(5, 19);
+                Immediate = currentInstruction.rightShift(24);
             }
             default -> throw new IllegalArgumentException("Unexpected value: " + getInstructionFormat());
         }
     }
 
+    private int nBitUnsignedDecoder(int n, Word word) {
+        checkBitRange(n);
+        int res = 0;
+        for (int i = 0; i < n; i++) {
+            res += word.getBit(i).getValue() ? (int) Math.pow(2, i) : 0;
+        }
+        return res;
+    }
+
     private Word getNBits(int size, int shift) {
         return getNBits(currentInstruction, size, shift);
+    }
+
+    private Word getRegister(Word word) {
+        return getRegister(nBitUnsignedDecoder(5, word));
+    }
+
+    private void setRegister(Word word, Word newWord) {
+        setRegister(nBitUnsignedDecoder(5, word), newWord);
     }
 
     public static Word getNBits(Word word, int size, int shift) {
@@ -115,8 +130,7 @@ public class Processor {
             case Triple(var fst, var snd, var thrd) when thrd -> InstructionCode.LOAD;
             case Triple(var fst, var snd, var thrd) when snd -> InstructionCode.CALL;
             case Triple(var fst, var snd, var thrd) when fst -> InstructionCode.BRANCH;
-            default -> throw new IllegalArgumentException("Unexpected value: "
-                    + new Triple<>(IC.getBit(1).getValue(), IC.getBit(1).getValue(), IC.getBit(1).getValue()));
+            default -> InstructionCode.MATH;
         };
     }
 
@@ -131,12 +145,14 @@ public class Processor {
     }
 
     private void execute() {
-        var op = new Bit[] {
-                Function.getBit(0).clone(),
-                Function.getBit(1).clone(),
-                Function.getBit(2).clone(),
+
+        var op = getInstructionFormat() != InstructionFormat.ZEROR ?  new Bit[] {
                 Function.getBit(3).clone(),
-        };
+                Function.getBit(2).clone(),
+                Function.getBit(1).clone(),
+                Function.getBit(0).clone(),
+        } : new Bit[4];
+        System.out.println(getInstructionCode() +" " + getInstructionFormat());
         switch (getInstructionCode()) {
             case CALL -> throw new UnsupportedOperationException("Unimplemented case: " + getInstructionCode());
             case LOAD -> throw new UnsupportedOperationException("Unimplemented case: " + getInstructionCode());
@@ -152,21 +168,18 @@ public class Processor {
                     }
                     case THREER -> {
                         // TODO: how to get rs1, rs2 from word
+                        alu.op1 = getRegister(Rs1);
+                        alu.op2 = getRegister(Rs2);
                         alu.doOperation(op);
                     }
-                    case TWOR ->
-                        // TODO: how to get rs1 from word
+                    case TWOR -> {
                         // put rs1 in op1 and op2
-                        throw new UnsupportedOperationException("Unimplemented case: " + getInstructionFormat());
-                    default -> throw new IllegalArgumentException("Unexpected value: " + getInstructionFormat());
-                }
-                if (getInstructionFormat() == InstructionFormat.ZEROR) {
-                    halted.set(true);
-                } else {
-                    // TODO: how get register and set op1. op2 to right register
-                    // TODO: maybe reverse op
-                    alu.doOperation(op);
+                        var op1 = getRegister(Rs1);
+                        alu.op1 = (alu.op2 = op1).clone();
+                        alu.doOperation(op);
 
+                    }
+                    default -> throw new IllegalArgumentException("Unexpected value: " + getInstructionFormat());
                 }
             }
             case POP -> throw new UnsupportedOperationException("Unimplemented case: " + getInstructionCode());
@@ -179,7 +192,8 @@ public class Processor {
 
     private void store() {
         // TODO: maybe dont store if its a halt
-        // TODO: how to get register from Rd
+        // also result wont always be from alu in future
+        setRegister(Rd, alu.result);
     }
 
     private void fetch() {

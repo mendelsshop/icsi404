@@ -174,4 +174,27 @@ public class UnitTests {
                 getTrue(), getTrue(), getTrue(), getTrue(), getTrue(), getTrue(), getTrue(), getTrue(), getTrue(),
                 getTrue(), getTrue(), getTrue(), getTrue(), getTrue(), }).clone(), 6, 3));
     }
+
+    @Test
+    public void processor0() {
+        var processor = new Processor();
+        MainMemory.load(new String[] {
+                // 0000000000000 101 0000 00001 000 01
+                // garbage 5     nop r1(rd) math 1r
+                "00000000000000010100000000100001",
+                //00000000 00001 00001 1110 00010 000 11
+                // garbage r1(rs1)r1(rs2)add r2(rd)math 3r 
+                "00000000000010000111100001000011",
+                //0000000000000 00010 1110 00010 000 10
+                // garbage      r2(rs1)add r2(rd)math2r 
+                "00000000000000001011100001000010",
+                //00000000 00010 00001 1110 00011 000 11
+                // garbage r2(rs1)r1(rs2)add r3(rd)math 3r 
+                "00000000000100000111100001100011",
+                // halt
+                "00000000000000000000000000000000"
+        });
+        processor.run();
+        System.out.println(processor.getRegister(3).getUnsigned());
+    }
 }
