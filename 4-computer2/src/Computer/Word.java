@@ -1,6 +1,6 @@
 package Computer;
 
-import static Utils.Utils.checkBitRange;
+import static Utils.Utils.*;
 
 import java.util.Arrays;
 import java.util.function.BiFunction;
@@ -24,7 +24,7 @@ public class Word {
 	private Bit[] bits;
 
 	public Word(Bit[] startBits) {
-		checkBitRange(startBits.length);
+		checkBitRange1(startBits.length);
 		bits = startBits;
 	}
 
@@ -51,12 +51,12 @@ public class Word {
 	}
 
 	public Bit getBit(int i) {
-		checkBitRange(i);
+		checkBitRange0(i);
 		return new Bit(bits[i].getValue());
 	}
 
 	public void setBit(int i, Bit bit) {
-		checkBitRange(i);
+		checkBitRange0(i);
 		// TODO: time for clone?
 		bits[i] = new Bit(bit.getValue());
 	}
@@ -99,8 +99,9 @@ public class Word {
 		return map2(Bit::not);
 	}
 
+	// TODO: should we range check on shift ie is 5 << 45 ok?
 	public Word leftShift(int amount) {
-		checkBitRange(amount);
+		// checkBitRange(amount);
 		var zerod = Stream.generate(() -> new Bit(false)).limit(amount);
 		var shifted = Arrays.stream(bits).limit(32 - amount).map(b -> new Bit(b.getValue()));
 		return new Word(Stream.concat(zerod, shifted)
@@ -108,7 +109,7 @@ public class Word {
 	}
 
 	public Word leftShift2(int amount) {
-		checkBitRange(amount);
+		// checkBitRange(amount);
 		var res = new Bit[32];
 		var i = 0;
 		for (; i < amount; i++) {
@@ -121,7 +122,7 @@ public class Word {
 	}
 
 	public Word rightShift2(int amount) {
-		checkBitRange(amount);
+		// checkBitRange(amount);
 		var res = new Bit[32];
 		var i = 0;
 		for (; i < 32 - amount; i++) {
@@ -134,7 +135,7 @@ public class Word {
 	}
 
 	public Word rightShift(int amount) {
-		checkBitRange(amount);
+		// checkBitRange(amount);
 		var zerod = Stream.generate(() -> new Bit(false)).limit(amount);
 		var shifted = Arrays.stream(bits).skip(amount).map(b -> new Bit(b.getValue()));
 		return new Word(Stream.concat(shifted, zerod)
@@ -159,16 +160,17 @@ public class Word {
 
 	public Word increment() {
 		return new Word(
-				Stream.iterate(0, i -> i < 32, i -> i + 1).reduce(new Tuple<>(new Bit(true), new Bit[32]), (t, i) -> {
-					t.snd()[i] = getBit(i).xor(t.fst());
-					return new Tuple<>(t.fst().and(getBit(i)), t.snd());
-				}, (x, y) -> y).snd());
+				Stream.iterate(0, i -> i < 32, i -> i + 1)
+						.reduce(new Tuple<>(new Bit(true), new Bit[32]), (t, i) -> {
+							t.snd()[i] = getBit(i).xor(t.fst());
+							return new Tuple<>(t.fst().and(getBit(i)), t.snd());
+						}, (x, y) -> y).snd());
 	}
 
 	public Word increment2() {
 		var carry = new Bit(true);
 		var res = new Bit[32];
-		for (int i = 0; i < 32 ; i++) {
+		for (int i = 0; i < 32; i++) {
 			res[i] = getBit(i).xor(carry);
 			carry = getBit(i).and(carry);
 		}
@@ -193,6 +195,20 @@ public class Word {
 
 	public long getUnsigned() {
 		return IntStream.range(0, 32).mapToLong((i) -> (bits[i].getValue() ? (long) Math.pow(2, i) : 0)).sum();
+	}
+
+	/**
+	 * @param n bit to sign extend from (0 indexed)
+	 * @return
+	 */
+	public Word signExtend(int n) {
+		checkBitRange0(n);
+		var result = clone();
+		var bit = getBit(n);
+		for (; n < 32; n++) {
+			setBit(n, bit);
+		}
+		return result;
 	}
 
 	public void set(int i) {
@@ -243,7 +259,8 @@ public class Word {
 
 	private Word map(BiFunction<Bit, Bit, Bit> mapper, Word other) {
 		return new Word(
-				Stream.iterate(0, i -> i < 32, i -> i + 1).map(i -> mapper.apply(bits[i], other.bits[i]))
+				Stream.iterate(0, i -> i < 32, i -> i + 1)
+						.map(i -> mapper.apply(bits[i], other.bits[i]))
 						.collect(Collectors.toList()).toArray(new Bit[32]));
 	}
 

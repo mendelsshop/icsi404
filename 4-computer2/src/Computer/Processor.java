@@ -1,7 +1,6 @@
 package Computer;
 
-import static Utils.Utils.checkBitRange;
-import static Utils.Utils.getZero;
+import static Utils.Utils.*;
 
 import java.util.function.Function;
 
@@ -75,7 +74,7 @@ public class Processor {
     }
 
     private int nBitUnsignedDecoder(int n, Word word) {
-        checkBitRange(n);
+        checkBitRange1(n);
         int res = 0;
         for (int i = 0; i < n; i++) {
             res += word.getBit(i).getValue() ? (int) Math.pow(2, i) : 0;
@@ -167,7 +166,6 @@ public class Processor {
                         alu.result = Immediate;
                     }
                     case THREER -> {
-                        // TODO: how to get rs1, rs2 from word
                         alu.op1 = getRegister(Rs1);
                         alu.op2 = getRegister(Rs2);
                         alu.doOperation(op);
