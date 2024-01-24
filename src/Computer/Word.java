@@ -160,9 +160,19 @@ public class Word {
 	public Word increment() {
 		return new Word(
 				Stream.iterate(0, i -> i < 32, i -> i + 1).reduce(new Tuple<>(new Bit(true), new Bit[32]), (t, i) -> {
-					t.snd()[i] = getBit(i).or(t.fst());
+					t.snd()[i] = getBit(i).xor(t.fst());
 					return new Tuple<>(t.fst().and(getBit(i)), t.snd());
 				}, (x, y) -> y).snd());
+	}
+
+	public Word increment2() {
+		var carry = new Bit(true);
+		var res = new Bit[32];
+		for (int i = 0; i < 32 ; i++) {
+			res[i] = getBit(i).xor(carry);
+			carry = getBit(i).and(carry);
+		}
+		return new Word(res);
 	}
 
 	public int getSigned2() {
