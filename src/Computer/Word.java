@@ -164,16 +164,19 @@ public class Word {
 
 	public void increment() {
 		Stream.iterate(0, i -> i < 32, i -> i + 1).reduce((new Bit(true)), (t, i) -> {
+			// order matters if you get carry after setting bit you are doing it wronmg (the joys of mutation)
+			var carry = t.and(getBit(i));
 			setBit(i, getBit(i).xor(t));
-			return (t.and(getBit(i)));
+			return (carry);
 		}, (x, y) -> y);
 	}
 
 	public void increment2() {
 		var carry = new Bit(true);
 		for (int i = 0; i < 32; i++) {
-			bits[i] = getBit(i).xor(carry);
+			// order matters if you get carry after setting bit you are doing it wronmg (the joys of mutation)
 			carry = getBit(i).and(carry);
+			bits[i] = getBit(i).xor(carry);
 		}
 	}
 
