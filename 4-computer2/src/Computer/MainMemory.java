@@ -239,8 +239,7 @@ public class MainMemory {
 
     // TODO; rnage check on addres
     public static void write(Word address, Word value) {
-        // TODO: should we copy word
-        MEMORY[(int) address.getUnsigned()] = value;
+        MEMORY[(int) address.getUnsigned()].copy(value);
     }
 
     public static void load(String[] data) {

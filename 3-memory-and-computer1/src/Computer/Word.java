@@ -9,8 +9,6 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import Utils.Utils.Tuple;
-
 public class Word {
 	// we often think of binary as rtl:
 	// 128 | 64 | 32 | 16 | 8 | 4 | 2 | 1
@@ -153,26 +151,30 @@ public class Word {
 	}
 
 	public Word negate() {
-		return not().increment();
-
+		var res = not();
+		res.increment();
+		return res;
 	}
 
-	public Word increment() {
-		return new Word(
-				Stream.iterate(0, i -> i < 32, i -> i + 1).reduce(new Tuple<>(new Bit(true), new Bit[32]), (t, i) -> {
-					t.snd()[i] = getBit(i).xor(t.fst());
-					return new Tuple<>(t.fst().and(getBit(i)), t.snd());
-				}, (x, y) -> y).snd());
+	public Word add1() {
+		var res = clone();
+		res.increment();
+		return res;
 	}
 
-	public Word increment2() {
+	public void increment() {
+		Stream.iterate(0, i -> i < 32, i -> i + 1).reduce((new Bit(true)), (t, i) -> {
+			setBit(i, getBit(i).xor(t));
+			return (t.and(getBit(i)));
+		}, (x, y) -> y);
+	}
+
+	public void increment2() {
 		var carry = new Bit(true);
-		var res = new Bit[32];
-		for (int i = 0; i < 32 ; i++) {
-			res[i] = getBit(i).xor(carry);
+		for (int i = 0; i < 32; i++) {
+			bits[i] = getBit(i).xor(carry);
 			carry = getBit(i).and(carry);
 		}
-		return new Word(res);
 	}
 
 	public int getSigned2() {

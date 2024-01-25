@@ -1,4 +1,5 @@
 package Computer;
+
 public class Processor {
     private Word PC = new Word(new Bit[32]);
     private Word SP = new Word(new Bit[32]);
@@ -21,8 +22,7 @@ public class Processor {
 
     private void fetch() {
         currentInstruction = MainMemory.read(PC);
-        // TODO: is increment in place?
-        PC = PC.increment();
+        PC.increment();
     }
 
     public void run() {
