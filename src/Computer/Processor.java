@@ -140,19 +140,30 @@ public class Processor {
             default -> throw new RuntimeException();
         };
     }
+    // TODO: do we always use store to do the store part (ie for load,store)?
 
     private void execute() {
 
-        var op = getInstructionFormat() != InstructionFormat.ZEROR ?  new Bit[] {
+        var op = getInstructionFormat() != InstructionFormat.ZEROR ? new Bit[] {
                 Function.getBit(3).clone(),
                 Function.getBit(2).clone(),
                 Function.getBit(1).clone(),
                 Function.getBit(0).clone(),
-        } : new Bit[4]; 
-        System.out.println(getInstructionCode()+" " + getInstructionFormat());
+        } : new Bit[4];
+        System.out.println(getInstructionCode() + " " + getInstructionFormat());
         switch (getInstructionCode()) {
             case CALL -> throw new UnsupportedOperationException("Unimplemented case: " + getInstructionCode());
-            case LOAD -> throw new UnsupportedOperationException("Unimplemented case: " + getInstructionCode());
+            case LOAD -> {
+                switch (getInstructionFormat()) {
+                    case TWOR -> setRegister(Rd, MainMemory.read(ALU.add2(Rs1, Immediate)));
+                    case THREER -> setRegister(Rd, MainMemory.read(ALU.add2(Rs1, Rs2)));
+                    case ONER -> setRegister(Rd, MainMemory.read(ALU.add2(Rd, Immediate)));
+                    case ZEROR -> {
+                        // TODO: when we say Return is pop and set the PC
+                        // or any instruction does some sub indtruction do we just do that basic version of that instruction ie --p
+                    }
+                }
+            }
             case MATH -> {
 
                 switch (getInstructionFormat()) {
@@ -180,8 +191,32 @@ public class Processor {
             }
             case POP -> throw new UnsupportedOperationException("Unimplemented case: " + getInstructionCode());
             case PUSH -> throw new UnsupportedOperationException("Unimplemented case: " + getInstructionCode());
-            case STORE -> throw new UnsupportedOperationException("Unimplemented case: " + getInstructionCode());
-            case BRANCH -> throw new UnsupportedOperationException("Unimplemented case: " + getInstructionCode());
+            case STORE -> {
+                switch (getInstructionFormat()) {
+                    // TODO: when adding should we use ALU.add2 or call dispatch on alu (or maybe
+                    // move add2/add4 to word)
+                    case TWOR ->
+                        MainMemory.write(ALU.add2(Rd, Immediate), Rs1);
+                    case THREER -> MainMemory.write(ALU.add2(Rd, Rs1), Rs2);
+                    case ONER -> MainMemory.write(Rd, Immediate);
+                    // TODO: shoulkld we error if not used
+                    case ZEROR -> {
+                    }
+                }
+            }
+            case BRANCH -> {
+                switch (getInstructionFormat()) {
+                    case ONER ->
+                        throw new UnsupportedOperationException("Unimplemented case: " + getInstructionFormat());
+                    case THREER ->
+                        throw new UnsupportedOperationException("Unimplemented case: " + getInstructionFormat());
+                    case TWOR ->
+                        throw new UnsupportedOperationException("Unimplemented case: " + getInstructionFormat());
+                    case ZEROR ->
+                        throw new UnsupportedOperationException("Unimplemented case: " + getInstructionFormat());
+                    default -> throw new IllegalArgumentException("Unexpected value: " + getInstructionFormat());
+                }
+            }
             default -> throw new IllegalArgumentException("Unexpected value: " + getInstructionCode());
         }
     }
