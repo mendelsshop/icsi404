@@ -196,8 +196,7 @@ public class Processor {
 
     private void fetch() {
         currentInstruction = MainMemory.read(PC);
-        // TODO: is increment in place?
-        PC = PC.increment();
+        PC.increment();
     }
 
     public void run() {
