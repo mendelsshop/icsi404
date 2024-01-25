@@ -1,6 +1,6 @@
 package Computer;
 
-import static Utils.Utils.checkBitRange;
+import static Utils.Utils.*;
 
 import java.util.Arrays;
 import java.util.function.BiFunction;
@@ -22,7 +22,9 @@ public class Word {
 	private Bit[] bits;
 
 	public Word(Bit[] startBits) {
-		checkBitRange(startBits.length);
+		if (startBits.length != 32) {
+			throw new IndexOutOfBoundsException();
+		}
 		bits = startBits;
 	}
 
@@ -49,12 +51,12 @@ public class Word {
 	}
 
 	public Bit getBit(int i) {
-		checkBitRange(i);
+		checkBitRange0(i);
 		return new Bit(bits[i].getValue());
 	}
 
 	public void setBit(int i, Bit bit) {
-		checkBitRange(i);
+		checkBitRange0(i);
 		// TODO: time for clone?
 		bits[i] = new Bit(bit.getValue());
 	}
@@ -98,7 +100,7 @@ public class Word {
 	}
 
 	public Word leftShift(int amount) {
-		checkBitRange(amount);
+		checkBitRange0(amount);
 		var zerod = Stream.generate(() -> new Bit(false)).limit(amount);
 		var shifted = Arrays.stream(bits).limit(32 - amount).map(b -> new Bit(b.getValue()));
 		return new Word(Stream.concat(zerod, shifted)
@@ -106,7 +108,7 @@ public class Word {
 	}
 
 	public Word leftShift2(int amount) {
-		checkBitRange(amount);
+		checkBitRange0(amount);
 		var res = new Bit[32];
 		var i = 0;
 		for (; i < amount; i++) {
@@ -119,7 +121,7 @@ public class Word {
 	}
 
 	public Word rightShift2(int amount) {
-		checkBitRange(amount);
+		checkBitRange0(amount);
 		var res = new Bit[32];
 		var i = 0;
 		for (; i < 32 - amount; i++) {
@@ -132,7 +134,7 @@ public class Word {
 	}
 
 	public Word rightShift(int amount) {
-		checkBitRange(amount);
+		checkBitRange0(amount);
 		var zerod = Stream.generate(() -> new Bit(false)).limit(amount);
 		var shifted = Arrays.stream(bits).skip(amount).map(b -> new Bit(b.getValue()));
 		return new Word(Stream.concat(shifted, zerod)
@@ -164,7 +166,8 @@ public class Word {
 
 	public void increment() {
 		Stream.iterate(0, i -> i < 32, i -> i + 1).reduce((new Bit(true)), (t, i) -> {
-			// order matters if you get carry after setting bit you are doing it wronmg (the joys of mutation)
+			// order matters if you get carry after setting bit you are doing it wronmg (the
+			// joys of mutation)
 			var carry = t.and(getBit(i));
 			setBit(i, getBit(i).xor(t));
 			return (carry);
@@ -174,7 +177,8 @@ public class Word {
 	public void increment2() {
 		var carry = new Bit(true);
 		for (int i = 0; i < 32; i++) {
-			// order matters if you get carry after setting bit you are doing it wronmg (the joys of mutation)
+			// order matters if you get carry after setting bit you are doing it wronmg (the
+			// joys of mutation)
 			carry = getBit(i).and(carry);
 			bits[i] = getBit(i).xor(carry);
 		}
