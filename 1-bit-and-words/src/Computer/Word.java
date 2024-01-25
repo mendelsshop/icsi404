@@ -1,6 +1,6 @@
 package Computer;
 
-import static Utils.Utils.checkBitRange;
+import static Utils.Utils.*;
 
 import java.util.Arrays;
 import java.util.function.BiFunction;
@@ -22,7 +22,9 @@ public class Word {
 	private Bit[] bits;
 
 	public Word(Bit[] startBits) {
-		checkBitRange(startBits.length);
+		if (startBits.length != 32) {
+			throw new IndexOutOfBoundsException();
+		}
 		bits = startBits;
 	}
 
@@ -49,12 +51,12 @@ public class Word {
 	}
 
 	public Bit getBit(int i) {
-		checkBitRange(i);
+		checkBitRange0(i);
 		return new Bit(bits[i].getValue());
 	}
 
 	public void setBit(int i, Bit bit) {
-		checkBitRange(i);
+		checkBitRange0(i);
 		// TODO: time for clone?
 		bits[i] = new Bit(bit.getValue());
 	}
@@ -98,7 +100,7 @@ public class Word {
 	}
 
 	public Word leftShift(int amount) {
-		checkBitRange(amount);
+		checkBitRange0(amount);
 		var zerod = Stream.generate(() -> new Bit(false)).limit(amount);
 		var shifted = Arrays.stream(bits).limit(32 - amount).map(b -> new Bit(b.getValue()));
 		return new Word(Stream.concat(zerod, shifted)
@@ -106,7 +108,7 @@ public class Word {
 	}
 
 	public Word leftShift2(int amount) {
-		checkBitRange(amount);
+		checkBitRange0(amount);
 		var res = new Bit[32];
 		var i = 0;
 		for (; i < amount; i++) {
@@ -119,7 +121,7 @@ public class Word {
 	}
 
 	public Word rightShift2(int amount) {
-		checkBitRange(amount);
+		checkBitRange0(amount);
 		var res = new Bit[32];
 		var i = 0;
 		for (; i < 32 - amount; i++) {
@@ -132,7 +134,7 @@ public class Word {
 	}
 
 	public Word rightShift(int amount) {
-		checkBitRange(amount);
+		checkBitRange0(amount);
 		var zerod = Stream.generate(() -> new Bit(false)).limit(amount);
 		var shifted = Arrays.stream(bits).skip(amount).map(b -> new Bit(b.getValue()));
 		return new Word(Stream.concat(shifted, zerod)
@@ -149,6 +151,7 @@ public class Word {
 				+ IntStream.range(0, 31).map((i) -> (bits[i].getValue() ? (int) Math.pow(2, i) : 0))
 						.sum();
 	}
+
 
 	public int getSigned2() {
 		var res = bits[31].getValue() ? -2147483648 : 0;

@@ -122,4 +122,3 @@ public class ALU {
                                 indexToWord.apply(31))));
     }
 }
-

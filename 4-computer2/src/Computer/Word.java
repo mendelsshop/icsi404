@@ -101,7 +101,7 @@ public class Word {
 
 	// TODO: should we range check on shift ie is 5 << 45 ok?
 	public Word leftShift(int amount) {
-		// checkBitRange(amount);
+		checkBitRange0(amount);
 		var zerod = Stream.generate(() -> new Bit(false)).limit(amount);
 		var shifted = Arrays.stream(bits).limit(32 - amount).map(b -> new Bit(b.getValue()));
 		return new Word(Stream.concat(zerod, shifted)
@@ -109,7 +109,7 @@ public class Word {
 	}
 
 	public Word leftShift2(int amount) {
-		// checkBitRange(amount);
+		checkBitRange0(amount);
 		var res = new Bit[32];
 		var i = 0;
 		for (; i < amount; i++) {
@@ -122,7 +122,7 @@ public class Word {
 	}
 
 	public Word rightShift2(int amount) {
-		// checkBitRange(amount);
+		checkBitRange0(amount);
 		var res = new Bit[32];
 		var i = 0;
 		for (; i < 32 - amount; i++) {
@@ -135,7 +135,7 @@ public class Word {
 	}
 
 	public Word rightShift(int amount) {
-		// checkBitRange(amount);
+		checkBitRange0(amount);
 		var zerod = Stream.generate(() -> new Bit(false)).limit(amount);
 		var shifted = Arrays.stream(bits).skip(amount).map(b -> new Bit(b.getValue()));
 		return new Word(Stream.concat(shifted, zerod)
@@ -167,7 +167,8 @@ public class Word {
 
 	public void increment() {
 		Stream.iterate(0, i -> i < 32, i -> i + 1).reduce((new Bit(true)), (t, i) -> {
-			// order matters if you get carry after setting bit you are doing it wronmg (the joys of mutation)
+			// order matters if you get carry after setting bit you are doing it wronmg (the
+			// joys of mutation)
 			var carry = t.and(getBit(i));
 			setBit(i, getBit(i).xor(t));
 			return (carry);
@@ -177,7 +178,8 @@ public class Word {
 	public void increment2() {
 		var carry = new Bit(true);
 		for (int i = 0; i < 32; i++) {
-			// order matters if you get carry after setting bit you are doing it wronmg (the joys of mutation)
+			// order matters if you get carry after setting bit you are doing it wronmg (the
+			// joys of mutation)
 			carry = getBit(i).and(carry);
 			bits[i] = getBit(i).xor(carry);
 		}
@@ -265,8 +267,7 @@ public class Word {
 
 	private Word map(BiFunction<Bit, Bit, Bit> mapper, Word other) {
 		return new Word(
-				Stream.iterate(0, i -> i < 32, i -> i + 1)
-						.map(i -> mapper.apply(bits[i], other.bits[i]))
+				Stream.iterate(0, i -> i < 32, i -> i + 1).map(i -> mapper.apply(bits[i], other.bits[i]))
 						.collect(Collectors.toList()).toArray(new Bit[32]));
 	}
 
