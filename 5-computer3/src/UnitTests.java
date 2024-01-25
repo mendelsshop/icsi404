@@ -131,7 +131,7 @@ public class UnitTests {
     }
 
     @Test
-    public void add() {
+    public void sub() {
         var n1 = new Word(new Bit[32]);
         var n2 = new Word(new Bit[32]);
         var alu = new ALU();
@@ -255,4 +255,3 @@ public class UnitTests {
         assertEquals(0, processor.getRegister(2).getUnsigned());
     }
 }
-
