@@ -19,10 +19,6 @@ public class Word {
 	// .. last bit the 4294967296s placw will be index 31
 	// this can sometimes be a bit (no pun intended) counterintuitive for bit
 	// shifiting and to/from decimal conversions
-
-	// another note:
-	// most methods here have duplicates meaning often named like name2
-	// they are a more perfromant, but less elegant soloution to same problem
 	private Bit[] bits;
 
 	public Word(Bit[] startBits) {
@@ -30,11 +26,6 @@ public class Word {
 			throw new IndexOutOfBoundsException();
 		}
 		bits = startBits;
-	}
-
-	public Word(int i) {
-		bits = new Bit[32];
-		set(i);
 	}
 
 	@Override
@@ -108,6 +99,7 @@ public class Word {
 		return map2(Bit::not);
 	}
 
+	// TODO: should we range check on shift ie is 5 << 45 ok?
 	public Word leftShift(int amount) {
 		checkBitRange0(amount);
 		var zerod = Stream.generate(() -> new Bit(false)).limit(amount);
@@ -151,7 +143,6 @@ public class Word {
 	}
 
 	@Override
-	// like my comment about rtl vs ltr above we output the strings as being ltr
 	public String toString() {
 		return Arrays.stream(bits).map(Bit::toString).collect(Collectors.joining(","));
 	}
@@ -174,7 +165,6 @@ public class Word {
 		return res;
 	}
 
-	// increment is just a 32 ripple half adder
 	public void increment() {
 		Stream.iterate(0, i -> i < 32, i -> i + 1).reduce((new Bit(true)), (t, i) -> {
 			// order matters if you get carry after setting bit you are doing it wronmg (the
@@ -190,9 +180,8 @@ public class Word {
 		for (int i = 0; i < 32; i++) {
 			// order matters if you get carry after setting bit you are doing it wronmg (the
 			// joys of mutation)
-			Bit bit = getBit(i).xor(carry);
 			carry = getBit(i).and(carry);
-			bits[i] = bit;
+			bits[i] = getBit(i).xor(carry);
 		}
 	}
 
@@ -204,10 +193,10 @@ public class Word {
 		return res;
 	}
 
-	public long getUnsigned2() {
-		long res = 0;
+	public int getUnsigned2() {
+		var res = 0;
 		for (int i = 0; i < 32; i++) {
-			res += bits[i].getValue() ? (long) Math.pow(2, i) : 0;
+			res += bits[i].getValue() ? (int) Math.pow(2, i) : 0;
 		}
 		return res;
 	}
@@ -278,8 +267,7 @@ public class Word {
 
 	private Word map(BiFunction<Bit, Bit, Bit> mapper, Word other) {
 		return new Word(
-				Stream.iterate(0, i -> i < 32, i -> i + 1)
-						.map(i -> mapper.apply(bits[i], other.bits[i]))
+				Stream.iterate(0, i -> i < 32, i -> i + 1).map(i -> mapper.apply(bits[i], other.bits[i]))
 						.collect(Collectors.toList()).toArray(new Bit[32]));
 	}
 
@@ -300,9 +288,7 @@ public class Word {
 	}
 
 	public void copy(Word other) {
-		bits = (Bit[]) Arrays.stream(other.bits)
-				.map(Bit::clone)
-				.toArray(Bit[]::new);
+		bits = (Bit[]) Arrays.stream(other.bits).map(b -> new Bit(b.getValue())).toArray();
 	}
 
 	public void copy2(Word other) {

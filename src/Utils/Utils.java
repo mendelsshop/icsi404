@@ -2,85 +2,64 @@ package Utils;
 
 import Computer.*;
 
-public final class Utils {
+public class Utils {
         private static final Bit FALSE = new Bit(false);
 
-        public static final Bit getFalse() {
+        public static Bit getFalse() {
                 return FALSE.clone();
         }
 
         private static final Bit TRUE = new Bit(true);
 
-        public static final Bit getTrue() {
+        public static Bit getTrue() {
                 return TRUE.clone();
         }
 
         private static final Bit[] TRUE_BITS = new Bit[] {
-                        getTrue(), getTrue(), getTrue(), getTrue(), getTrue(), getTrue(), getTrue(), getTrue(),
-                        getTrue(), getTrue(), getTrue(), getTrue(), getTrue(), getTrue(), getTrue(), getTrue(),
-                        getTrue(), getTrue(), getTrue(), getTrue(), getTrue(), getTrue(), getTrue(), getTrue(),
-                        getTrue(), getTrue(), getTrue(), getTrue(), getTrue(), getTrue(), getTrue(), getTrue(),
-        };
+                        TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE,
+                        TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE,
+                        TRUE, };
 
-        public static final Bit[] getTrueBits() {
+        public static Bit[] getTrueBits() {
                 return TRUE_BITS.clone();
         }
 
         private static final Bit[] FALSE_BITS = new Bit[] {
-                        getFalse(), getFalse(), getFalse(), getFalse(), getFalse(), getFalse(), getFalse(), getFalse(),
-                        getFalse(), getFalse(), getFalse(), getFalse(), getFalse(), getFalse(), getFalse(), getFalse(),
-                        getFalse(), getFalse(), getFalse(), getFalse(), getFalse(), getFalse(), getFalse(), getFalse(),
-                        getFalse(), getFalse(), getFalse(), getFalse(), getFalse(), getFalse(), getFalse(), getFalse(),
-        };
+                        FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,
+                        FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,
+                        FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, };
 
-        public static final Bit[] getFalseBits() {
+        public static Bit[] getFalseBits() {
                 return FALSE_BITS.clone();
         }
 
         private static final Word BIG_NUMBER = new Word(TRUE_BITS);
 
-        public static final Word getBigNumber() {
+        public static Word getBigNumber() {
                 return BIG_NUMBER.clone();
         }
 
         private static final Word ZERO = new Word(FALSE_BITS);
 
-        public static final Word getZero() {
+        public static Word getZero() {
                 return ZERO.clone();
         }
 
-        public static final void checkBitRange0(final int i) {
+        public static void checkBitRange0(int i) {
                 if (i < 0 || i > 31) {
                         throw new IndexOutOfBoundsException();
                 }
         }
 
-        public static final void checkBitRange1(final int i) {
+        public static void checkBitRange1(int i) {
                 if (i < 1 || i > 32) {
                         throw new IndexOutOfBoundsException();
                 }
         }
 
-        public static final record Tuple<T, U>(T fst, U snd) {
+        public static record Tuple<T, U>(T fst, U snd) {
         }
 
-        public static final record Triple<T, U, V>(T fst, U snd, V thrd) {
-                public final Triple<T, U, V> setFst(final T newFst) {
-                        return new Triple<T, U, V>(newFst, snd, thrd);
-                }
-
-                public final Triple<T, U, V> setSnd(final U newSnd) {
-                        return new Triple<T, U, V>(fst, newSnd, thrd);
-                }
-
-                public final Triple<T, U, V> setThrd(final V newThrd) {
-                        return new Triple<T, U, V>(fst, snd, newThrd);
-                }
-        }
-
-        @FunctionalInterface
-        public interface TriFunction<T, U, V, R> {
-                public R apply(T t, U u, V v);
-
+        public record Triple<T, U, V>(T fst, U snd, V thrd) {
         }
 }
