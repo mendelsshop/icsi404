@@ -4,8 +4,6 @@ import static Utils.Utils.*;
 
 import java.util.function.Function;
 
-import Utils.Utils.*;
-
 public class Processor {
     private Word PC = new Word(new Bit[32]);
     private Word SP = new Word(new Bit[32]);
@@ -135,9 +133,9 @@ public class Processor {
 
     private InstructionFormat getInstructionFormat() {
         return switch (new Tuple<>(IF.getBit(0).getValue(), IF.getBit(1).getValue())) {
-            case Tuple(var fst, var snd) when fst && snd -> InstructionFormat.THREER;
+            case Tuple(var fst, var snd) when fst && snd -> InstructionFormat.TWOR;
             case Tuple(var fst, var snd) when fst -> InstructionFormat.ONER;
-            case Tuple(var fst, var snd) when snd -> InstructionFormat.TWOR;
+            case Tuple(var fst, var snd) when snd -> InstructionFormat.THREER;
             case Tuple(var fst, var snd) -> InstructionFormat.ZEROR;
             default -> throw new RuntimeException();
         };
@@ -150,8 +148,8 @@ public class Processor {
                 Function.getBit(2).clone(),
                 Function.getBit(1).clone(),
                 Function.getBit(0).clone(),
-        } : new Bit[4];
-        System.out.println(getInstructionCode() +" " + getInstructionFormat());
+        } : new Bit[4]; 
+        System.out.println(getInstructionCode()+" " + getInstructionFormat());
         switch (getInstructionCode()) {
             case CALL -> throw new UnsupportedOperationException("Unimplemented case: " + getInstructionCode());
             case LOAD -> throw new UnsupportedOperationException("Unimplemented case: " + getInstructionCode());
@@ -172,8 +170,8 @@ public class Processor {
                     }
                     case TWOR -> {
                         // put rs1 in op1 and op2
-                        var op1 = getRegister(Rs1);
-                        alu.op1 = (alu.op2 = op1).clone();
+                        alu.op1 = getRegister(Rd);
+                        alu.op2 = getRegister(Rs1);
                         alu.doOperation(op);
 
                     }
@@ -208,3 +206,4 @@ public class Processor {
         }
     }
 }
+
