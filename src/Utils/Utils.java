@@ -45,9 +45,14 @@ public class Utils {
                 return ZERO.clone();
         }
 
-        public static void checkBitRange(int i) {
-                if (i < 0 || i > 32) {
-                        // TODO: better exeption
+        public static void checkBitRange0(int i) {
+                if (i < 0 || i > 31) {
+                        throw new IndexOutOfBoundsException();
+                }
+        }
+
+        public static void checkBitRange1(int i) {
+                if (i < 1 || i > 32) {
                         throw new IndexOutOfBoundsException();
                 }
         }
