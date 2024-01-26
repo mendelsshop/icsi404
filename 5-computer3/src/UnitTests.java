@@ -1,5 +1,10 @@
 
-import static Utils.Utils.*;
+import static Utils.Utils.getBigNumber;
+import static Utils.Utils.getFalse;
+import static Utils.Utils.getFalseBits;
+import static Utils.Utils.getTrue;
+import static Utils.Utils.getTrueBits;
+import static Utils.Utils.getZero;
 import static org.junit.Assert.assertEquals;
 
 import java.time.Duration;
@@ -9,7 +14,11 @@ import java.util.stream.IntStream;
 
 import org.junit.Test;
 
-import Computer.*;
+import Computer.ALU;
+import Computer.Bit;
+import Computer.MainMemory;
+import Computer.Processor;
+import Computer.Word;
 
 public class UnitTests {
 
@@ -253,5 +262,15 @@ public class UnitTests {
         processor.run();
         System.out.println(processor.getRegister(2).getSigned());
         assertEquals(0, processor.getRegister(2).getUnsigned());
+    }
+
+
+    @Test
+    public void incrementTest() {
+        var word = getBigNumber();
+        word.set2(2147483647);
+        word.increment();
+        System.out.println(word.getUnsigned2());
+        assertEquals(5, word.getSigned2());
     }
 }
