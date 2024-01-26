@@ -160,7 +160,8 @@ public class Processor {
                     case ONER -> setRegister(Rd, MainMemory.read(ALU.add2(Rd, Immediate)));
                     case ZEROR -> {
                         // TODO: when we say Return is pop and set the PC
-                        // or any instruction does some sub indtruction do we just do that basic version of that instruction ie --p
+                        // or any instruction does some sub indtruction do we just do that basic version
+                        // of that instruction ie --p
                     }
                 }
             }
@@ -207,13 +208,22 @@ public class Processor {
             case BRANCH -> {
                 switch (getInstructionFormat()) {
                     case ONER ->
-                        throw new UnsupportedOperationException("Unimplemented case: " + getInstructionFormat());
-                    case THREER ->
-                        throw new UnsupportedOperationException("Unimplemented case: " + getInstructionFormat());
-                    case TWOR ->
-                        throw new UnsupportedOperationException("Unimplemented case: " + getInstructionFormat());
-                    case ZEROR ->
-                        throw new UnsupportedOperationException("Unimplemented case: " + getInstructionFormat());
+                        PC.copy(ALU.add2(PC, Immediate));
+                    case THREER -> {
+                        alu.op1 = Rs1;
+                        alu.op2 = Rs2;
+                        if (alu.doBooleanOperation(op)) {
+                            PC.copy(ALU.add2(PC, Immediate));
+                        }
+                    }
+                    case TWOR -> {
+                        alu.op1 = Rs1;
+                        alu.op2 = Rd;
+                        if (alu.doBooleanOperation(op)) {
+                            PC.copy(ALU.add2(PC, Immediate));
+                        }
+                    }
+                    case ZEROR -> PC.copy(Immediate);
                     default -> throw new IllegalArgumentException("Unexpected value: " + getInstructionFormat());
                 }
             }
