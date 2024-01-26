@@ -152,7 +152,6 @@ public class Word {
 						.sum();
 	}
 
-
 	public int getSigned2() {
 		var res = bits[31].getValue() ? -2147483648 : 0;
 		for (int i = 0; i < 31; i++) {
@@ -161,10 +160,10 @@ public class Word {
 		return res;
 	}
 
-	public int getUnsigned2() {
-		var res = 0;
+	public long getUnsigned2() {
+		long res = 0;
 		for (int i = 0; i < 32; i++) {
-			res += bits[i].getValue() ? (int) Math.pow(2, i) : 0;
+			res += bits[i].getValue() ? (long) Math.pow(2, i) : 0;
 		}
 		return res;
 	}
@@ -221,7 +220,8 @@ public class Word {
 
 	private Word map(BiFunction<Bit, Bit, Bit> mapper, Word other) {
 		return new Word(
-				Stream.iterate(0, i -> i < 32, i -> i + 1).map(i -> mapper.apply(bits[i], other.bits[i]))
+				Stream.iterate(0, i -> i < 32, i -> i + 1)
+						.map(i -> mapper.apply(bits[i], other.bits[i]))
 						.collect(Collectors.toList()).toArray(new Bit[32]));
 	}
 
