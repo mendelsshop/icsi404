@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.function.IntConsumer;
+import java.util.function.IntFunction;
 import java.util.stream.IntStream;
 
 import org.junit.Test;
@@ -142,6 +143,26 @@ public class UnitTests {
         alu.op2 = n2;
         alu.doOperation(new Bit[] { new Bit(true), new Bit(true), new Bit(true), new Bit(true) });
         System.out.println(alu.result.getSigned());
+    }
+
+    public static void doInRange(int start, int end, IntConsumer doer, String beingTested) {
+        var t1 = timeOperation(() -> IntStream.range(start, end).
+        // parallel().
+        forEach(doer));
+        System.out.println("doing " + beingTested + "from " + start + "to end " + end + "took " + t1);
+    };
+
+    @Test
+    public void add_a_lot() {
+        IntConsumer muller = i -> {
+            var n1 = new Word(i);
+            doInRange(0, 100, j -> {
+                var n2 = new Word(j);
+                var added = ALU.mul(n1, n2);
+                assertEquals(i*j, added.getUnsigned());
+            }, "mul inner");
+        };
+        doInRange(0, 100, muller , "mul outer");
     }
 
     @Test

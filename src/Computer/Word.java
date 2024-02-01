@@ -28,6 +28,11 @@ public class Word {
 		bits = startBits;
 	}
 
+	public Word(int i) {
+		bits = new Bit[32];
+		set(i);
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
