@@ -1,9 +1,10 @@
-
 import static Utils.Utils.*;
+
 import static org.junit.Assert.assertEquals;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Random;
 import java.util.function.IntConsumer;
 import java.util.stream.IntStream;
 
@@ -413,5 +414,88 @@ public class UnitTests {
         assertEquals(getZeroOne(), getZero().xor2(getZeroOne()));
         assertEquals(getZero(), getOneZero().xor2(getOneZero()));
         assertEquals(getZero(), getZeroOne().xor2(getZeroOne()));
+    }
+
+    @Test
+    public void AdvancedWordCombinations() {
+        assertEquals(0 << 5 & 6 | ~7, getZero().leftShift(5).and(new Word(6)).or(new Word(7).not()).getSigned());
+    }
+
+    public void Fuzzer(int times) {
+        var rng = new Random();
+        var word = getZero();
+        var actual = 0;
+        for (int i = 0; i < times; i++) {
+            switch (rng.nextInt(9)) {
+                case 0 -> {
+                    var index = rng.nextInt(32);
+                    var val = new Bit(rng.nextBoolean());
+                    word.setBit(index, val);
+                    int mask = (1 << (index));
+                    actual = (actual & ~mask | ((val.getValue() ? 1 : 0) << (index)));
+                }
+                case 1 -> {
+                    var val = rng.nextInt(-2147483648, 2147483647);
+                    word.set(val);
+                    actual = val;
+                }
+                case 2 -> {
+                    word = word.not();
+                    actual = ~actual;
+                }
+                case 3 -> {
+                    var shift = rng.nextInt(0, 32);
+                    word = word.leftShift(shift);
+                    actual = actual << shift;
+                }
+                case 4 -> {
+                    var shift = rng.nextInt(0, 32);
+                    word = word.rightShift(shift);
+                    // using >>>
+                    actual = actual >>> shift;
+                }
+                case 5 -> {
+                    var mask = rng.nextInt(-2147483648, 2147483647);
+                    word = word.and(new Word(mask));
+                    actual = actual & mask;
+                }
+                case 6 -> {
+                    var mask = rng.nextInt(-2147483648, 2147483647);
+                    word = word.or(new Word(mask));
+                    actual = actual | mask;
+                }
+                case 7 -> {
+                    var mask = rng.nextInt(-2147483648, 2147483647);
+                    word = word.xor(new Word(mask));
+                    actual = actual ^ mask;
+                }
+            }
+            assertEquals(actual, word.getSigned());
+        }
+    }
+
+    @Test
+    public void fuzzer100() {
+        Fuzzer(100);
+    }
+
+    @Test
+    public void fuzzer1000() {
+        Fuzzer(1000);
+    }
+
+    @Test
+    public void fuzzer10000() {
+        Fuzzer(10000);
+    }
+
+    @Test
+    public void fuzzer100000() {
+        Fuzzer(100000);
+    }
+
+    @Test
+    public void fuzzer1000000() {
+        Fuzzer(1000000);
     }
 }
