@@ -13,6 +13,19 @@ import Computer.*;
 
 public class UnitTests {
 
+    private static final Word ZEROONE = new Word(new Bit[] {
+            getFalse(), getTrue(), getFalse(), getTrue(), getFalse(), getTrue(), getFalse(), getTrue(), getFalse(),
+            getTrue(), getFalse(), getTrue(), getFalse(), getTrue(), getFalse(), getTrue(), getFalse(), getTrue(),
+            getFalse(), getTrue(), getFalse(), getTrue(), getFalse(), getTrue(), getFalse(), getTrue(), getFalse(),
+            getTrue(), getFalse(), getTrue(), getFalse(), getTrue(),
+    });
+    private static final Word ONEZERO = new Word(new Bit[] {
+            getTrue(), getFalse(), getTrue(), getFalse(), getTrue(), getFalse(), getTrue(), getFalse(), getTrue(),
+            getFalse(), getTrue(), getFalse(), getTrue(), getFalse(), getTrue(), getFalse(), getTrue(), getFalse(),
+            getTrue(), getFalse(), getTrue(), getFalse(), getTrue(), getFalse(), getTrue(), getFalse(), getTrue(),
+            getFalse(), getTrue(), getFalse(), getTrue(), getFalse(),
+    });
+
     private static Duration timeOperation(Runnable r) {
         Instant start = Instant.now();
         r.run();
@@ -121,6 +134,8 @@ public class UnitTests {
     public void BasicWordNot() {
         assertEquals(getZero(), getBigNumber().not());
         assertEquals(getBigNumber(), getZero().not());
+        assertEquals(getZero(), getBigNumber().not2());
+        assertEquals(getBigNumber(), getZero().not2());
     }
 
     @Test
@@ -295,5 +310,108 @@ public class UnitTests {
                     word.set(i);
                     assertEquals(i, word.getSigned());
                 }), "signed");
+    }
+
+    public Word getZeroOne() {
+        return ZEROONE.clone();
+    }
+
+    public Word getOneZero() {
+        return ONEZERO.clone();
+    }
+
+    @Test
+    public void AdvancedWordNot() {
+        assertEquals(getOneZero(), getZeroOne().not());
+        assertEquals(getZeroOne(), getOneZero().not());
+        assertEquals(getOneZero(), getZeroOne().not2());
+        assertEquals(getZeroOne(), getOneZero().not2());
+    }
+
+    @Test
+    public void AdvancedWordAnd() {
+        assertEquals(getZero(), getZeroOne().and(getOneZero()));
+        assertEquals(getZero(), getOneZero().and(getZeroOne()));
+        assertEquals(getOneZero(), getOneZero().and(getBigNumber()));
+        assertEquals(getOneZero(), getBigNumber().and(getOneZero()));
+        assertEquals(getZeroOne(), getZeroOne().and(getBigNumber()));
+        assertEquals(getZeroOne(), getBigNumber().and(getZeroOne()));
+        assertEquals(getZero(), getOneZero().and(getZero()));
+        assertEquals(getZero(), getZero().and(getOneZero()));
+        assertEquals(getZero(), getZeroOne().and(getZero()));
+        assertEquals(getZero(), getZero().and(getZeroOne()));
+        assertEquals(getOneZero(), getOneZero().and(getOneZero()));
+        assertEquals(getZeroOne(), getZeroOne().and(getZeroOne()));
+
+        assertEquals(getZero(), getZeroOne().and2(getOneZero()));
+        assertEquals(getZero(), getOneZero().and2(getZeroOne()));
+        assertEquals(getOneZero(), getOneZero().and2(getBigNumber()));
+        assertEquals(getOneZero(), getBigNumber().and2(getOneZero()));
+        assertEquals(getZeroOne(), getZeroOne().and2(getBigNumber()));
+        assertEquals(getZeroOne(), getBigNumber().and2(getZeroOne()));
+        assertEquals(getZero(), getOneZero().and2(getZero()));
+        assertEquals(getZero(), getZero().and2(getOneZero()));
+        assertEquals(getZero(), getZeroOne().and2(getZero()));
+        assertEquals(getZero(), getZero().and2(getZeroOne()));
+        assertEquals(getOneZero(), getOneZero().and2(getOneZero()));
+        assertEquals(getZeroOne(), getZeroOne().and2(getZeroOne()));
+    }
+
+    @Test
+    public void AdvancedWordOr() {
+        assertEquals(getBigNumber(), getZeroOne().or(getOneZero()));
+        assertEquals(getBigNumber(), getOneZero().or(getZeroOne()));
+        assertEquals(getBigNumber(), getOneZero().or(getBigNumber()));
+        assertEquals(getBigNumber(), getBigNumber().or(getOneZero()));
+        assertEquals(getBigNumber(), getZeroOne().or(getBigNumber()));
+        assertEquals(getBigNumber(), getBigNumber().or(getZeroOne()));
+        assertEquals(getOneZero(), getOneZero().or(getZero()));
+        assertEquals(getOneZero(), getZero().or(getOneZero()));
+        assertEquals(getZeroOne(), getZeroOne().or(getZero()));
+        assertEquals(getZeroOne(), getZero().or(getZeroOne()));
+        assertEquals(getOneZero(), getOneZero().or(getOneZero()));
+        assertEquals(getZeroOne(), getZeroOne().or(getZeroOne()));
+
+        assertEquals(getBigNumber(), getZeroOne().or2(getOneZero()));
+        assertEquals(getBigNumber(), getOneZero().or2(getZeroOne()));
+        assertEquals(getBigNumber(), getOneZero().or2(getBigNumber()));
+        assertEquals(getBigNumber(), getBigNumber().or2(getOneZero()));
+        assertEquals(getBigNumber(), getZeroOne().or2(getBigNumber()));
+        assertEquals(getBigNumber(), getBigNumber().or2(getZeroOne()));
+        assertEquals(getOneZero(), getOneZero().or2(getZero()));
+        assertEquals(getOneZero(), getZero().or2(getOneZero()));
+        assertEquals(getZeroOne(), getZeroOne().or2(getZero()));
+        assertEquals(getZeroOne(), getZero().or2(getZeroOne()));
+        assertEquals(getOneZero(), getOneZero().or2(getOneZero()));
+        assertEquals(getZeroOne(), getZeroOne().or2(getZeroOne()));
+    }
+
+    @Test
+    public void AdvancedWordXor() {
+        assertEquals(getBigNumber(), getZeroOne().xor(getOneZero()));
+        assertEquals(getBigNumber(), getOneZero().xor(getZeroOne()));
+        assertEquals(getZeroOne(), getOneZero().xor(getBigNumber()));
+        assertEquals(getZeroOne(), getBigNumber().xor(getOneZero()));
+        assertEquals(getOneZero(), getZeroOne().xor(getBigNumber()));
+        assertEquals(getOneZero(), getBigNumber().xor(getZeroOne()));
+        assertEquals(getOneZero(), getOneZero().xor(getZero()));
+        assertEquals(getOneZero(), getZero().xor(getOneZero()));
+        assertEquals(getZeroOne(), getZeroOne().xor(getZero()));
+        assertEquals(getZeroOne(), getZero().xor(getZeroOne()));
+        assertEquals(getZero(), getOneZero().xor(getOneZero()));
+        assertEquals(getZero(), getZeroOne().xor(getZeroOne()));
+
+        assertEquals(getBigNumber(), getZeroOne().xor2(getOneZero()));
+        assertEquals(getBigNumber(), getOneZero().xor2(getZeroOne()));
+        assertEquals(getZeroOne(), getOneZero().xor2(getBigNumber()));
+        assertEquals(getZeroOne(), getBigNumber().xor2(getOneZero()));
+        assertEquals(getOneZero(), getZeroOne().xor2(getBigNumber()));
+        assertEquals(getOneZero(), getBigNumber().xor2(getZeroOne()));
+        assertEquals(getOneZero(), getOneZero().xor2(getZero()));
+        assertEquals(getOneZero(), getZero().xor2(getOneZero()));
+        assertEquals(getZeroOne(), getZeroOne().xor2(getZero()));
+        assertEquals(getZeroOne(), getZero().xor2(getZeroOne()));
+        assertEquals(getZero(), getOneZero().xor2(getOneZero()));
+        assertEquals(getZero(), getZeroOne().xor2(getZeroOne()));
     }
 }
