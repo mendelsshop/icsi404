@@ -13,41 +13,6 @@ import Computer.*;
 
 public class UnitTests {
 
-    // Word Tests
-    @Test
-    public void BasicWordNot() {
-        assertEquals(getZero(), getBigNumber().not());
-    }
-
-    @Test
-    public void BasicWordAnd() {
-        assertEquals(getZero(), getBigNumber().and(getZero()));
-    }
-
-    @Test
-    public void BasicWordOr() {
-        assertEquals(getBigNumber(), getZero().or(getBigNumber()));
-    }
-
-    @Test
-    public void BasicWordXor() {
-        assertEquals(getZero(), getBigNumber().xor(getBigNumber()));
-    }
-
-    @Test
-    public void BasicWordSet() {
-        var big_number = new Word(
-                new Bit[] { getTrue(), getFalse(), getFalse(), getFalse(), getFalse(), getFalse(), getFalse(),
-                        getFalse(), getFalse(), getFalse(), getFalse(), getFalse(), getFalse(), getFalse(), getFalse(),
-                        getFalse(), getFalse(), getFalse(), getFalse(), getFalse(), getFalse(), getFalse(), getFalse(),
-                        getFalse(), getFalse(), getFalse(), getFalse(), getFalse(), getFalse(), getFalse(), getFalse(),
-                        getFalse(), });
-        big_number.set(2147483647);
-        System.out.println(big_number);
-        assertEquals(-6, big_number.getSigned());
-        assertEquals(getZero(), big_number);
-    }
-
     private static Duration timeOperation(Runnable r) {
         Instant start = Instant.now();
         r.run();
@@ -57,57 +22,14 @@ public class UnitTests {
 
     private static void compareRange(int lowerInclusive, int higherExclusive, IntConsumer doer, IntConsumer doer2,
             String name) {
-        var t1 = timeOperation(() -> IntStream.range(lowerInclusive, higherExclusive).parallel().forEach(doer));
-        var t2 = timeOperation(() -> IntStream.range(lowerInclusive, higherExclusive).parallel().forEach(doer2));
+        var t1 = timeOperation(() -> IntStream.range(lowerInclusive, higherExclusive)
+                // .parallel()
+                .forEach(doer));
+        var t2 = timeOperation(() -> IntStream.range(lowerInclusive, higherExclusive)
+                // .parallel()
+                .forEach(doer2));
 
         System.out.println(name + " orginal:" + t1.toMillis() + " new:" + t2.toMillis());
-    }
-
-    @Test
-    public void intToWord() {
-        compareRange(-2147483648, -1073741824, i -> {
-            var word = new Word(getFalseBits());
-            word.set2(i);
-            assertEquals(i, word.getSigned2());
-        },
-                (i -> {
-                    var word = new Word(getFalseBits());
-                    word.set(i);
-                    assertEquals(i, word.getSigned());
-                }), "signed");
-        System.out.println(-1073741824);
-        compareRange(-1073741823, 0, i -> {
-            var word = new Word(getFalseBits());
-            word.set2(i);
-            assertEquals(i, word.getSigned2());
-        },
-                (i -> {
-                    var word = new Word(getFalseBits());
-                    word.set(i);
-                    assertEquals(i, word.getSigned());
-                }), "signed");
-        System.out.println(0);
-        compareRange(1, 1073741823, i -> {
-            var word = new Word(getFalseBits());
-            word.set2(i);
-            assertEquals(i, word.getSigned2());
-        },
-                (i -> {
-                    var word = new Word(getFalseBits());
-                    word.set(i);
-                    assertEquals(i, word.getSigned());
-                }), "signed");
-        System.out.println(1073741824);
-        compareRange(1073741824, 2147483647, i -> {
-            var word = new Word(getFalseBits());
-            word.set2(i);
-            assertEquals(i, word.getSigned2());
-        },
-                (i -> {
-                    var word = new Word(getFalseBits());
-                    word.set(i);
-                    assertEquals(i, word.getSigned());
-                }), "signed");
     }
 
     @Test
@@ -194,8 +116,100 @@ public class UnitTests {
         assertEquals(getTrue(), true_xor_false);
     }
 
+    // Word Tests
     @Test
-    public void shift() {
+    public void BasicWordNot() {
+        assertEquals(getZero(), getBigNumber().not());
+        assertEquals(getBigNumber(), getZero().not());
+    }
+
+    @Test
+    public void BasicWordAnd() {
+        assertEquals(getZero(), getBigNumber().and(getZero()));
+        assertEquals(getBigNumber(), getBigNumber().and(getBigNumber()));
+        assertEquals(getZero(), getZero().and(getZero()));
+        assertEquals(getZero(), getZero().and(getBigNumber()));
+        assertEquals(getZero(), getBigNumber().and2(getZero()));
+        assertEquals(getBigNumber(), getBigNumber().and2(getBigNumber()));
+        assertEquals(getZero(), getZero().and2(getZero()));
+        assertEquals(getZero(), getZero().and2(getBigNumber()));
+    }
+
+    @Test
+    public void BasicWordOr() {
+        assertEquals(getBigNumber(), getBigNumber().or(getZero()));
+        assertEquals(getBigNumber(), getBigNumber().or(getBigNumber()));
+        assertEquals(getZero(), getZero().or(getZero()));
+        assertEquals(getBigNumber(), getZero().or(getBigNumber()));
+        assertEquals(getBigNumber(), getBigNumber().or2(getZero()));
+        assertEquals(getBigNumber(), getBigNumber().or2(getBigNumber()));
+        assertEquals(getZero(), getZero().or2(getZero()));
+        assertEquals(getBigNumber(), getZero().or2(getBigNumber()));
+    }
+
+    @Test
+    public void BasicWordXor() {
+        assertEquals(getBigNumber(), getBigNumber().xor(getZero()));
+        assertEquals(getZero(), getBigNumber().xor(getBigNumber()));
+        assertEquals(getZero(), getZero().xor(getZero()));
+        assertEquals(getBigNumber(), getZero().xor(getBigNumber()));
+        assertEquals(getBigNumber(), getBigNumber().xor2(getZero()));
+        assertEquals(getZero(), getBigNumber().xor2(getBigNumber()));
+        assertEquals(getZero(), getZero().xor2(getZero()));
+        assertEquals(getBigNumber(), getZero().xor2(getBigNumber()));
+    }
+
+    @Test
+    public void BasicWordLeftShift() {
+        System.out.println(getBigNumber().getSigned());
+        compareRange(0, 32, i -> {
+            var word = new Word(getTrueBits());
+            word = word.leftShift(i);
+            assertEquals(-1 << i, word.getSigned());
+        },
+                (i -> {
+
+                    var word = new Word(getTrueBits());
+                    word = word.leftShift2(i);
+                    assertEquals(-1 << i, word.getSigned2());
+
+                }), "left shift");
+
+    }
+
+    @Test
+    public void BasicWordRightShift() {
+
+        compareRange(0, 32, i -> {
+            var word = getBigNumber();
+            word = word.rightShift(i);
+            assertEquals(-1 >>> i, word.getSigned());
+        },
+                (i -> {
+
+                    var word = getBigNumber();
+                    word = word.rightShift2(i);
+                    assertEquals(-1 >>> i, word.getSigned2());
+
+                }), "right shift");
+
+    }
+
+    @Test
+    public void BasicWordSet() {
+        var big_number = new Word(
+                new Bit[] { getTrue(), getFalse(), getFalse(), getFalse(), getFalse(), getFalse(), getFalse(),
+                        getFalse(), getFalse(), getFalse(), getFalse(), getFalse(), getFalse(), getFalse(), getFalse(),
+                        getFalse(), getFalse(), getFalse(), getFalse(), getFalse(), getFalse(), getFalse(), getFalse(),
+                        getFalse(), getFalse(), getFalse(), getFalse(), getFalse(), getFalse(), getFalse(), getFalse(),
+                        getFalse(), });
+        big_number.set(2147483647);
+        System.out.println(big_number);
+        assertEquals(2147483647, big_number.getSigned());
+    }
+
+    @Test
+    public void leftShiftibyi() {
 
         compareRange(0, 32, i -> {
             var word = new Word(getTrueBits());
@@ -210,8 +224,76 @@ public class UnitTests {
                     word = word.leftShift2(i);
                     assertEquals(i << i, word.getSigned2());
 
-                }), "signed");
+                }), "left shift");
 
     }
 
+    @Test
+    public void rightShiftibyi() {
+
+        compareRange(0, 32, i -> {
+            var word = new Word(getTrueBits());
+            word.set(i);
+            word = word.rightShift(i);
+            assertEquals(i >> i, word.getSigned());
+        },
+                (i -> {
+
+                    var word = new Word(getTrueBits());
+                    word.set(i);
+                    word = word.rightShift2(i);
+                    assertEquals(i >> i, word.getSigned2());
+
+                }), "right shift");
+
+    }
+
+    @Test
+    // This test takes a while as it go from -2147483648 to 2147483647 and make sure
+    // the that set and get are correct
+    public void intToWord() {
+        compareRange(-2147483648, -1073741824, i -> {
+            var word = new Word(getFalseBits());
+            word.set2(i);
+            assertEquals(i, word.getSigned2());
+        },
+                (i -> {
+                    var word = new Word(getFalseBits());
+                    word.set(i);
+                    assertEquals(i, word.getSigned());
+                }), "signed");
+        System.out.println(-1073741824);
+        compareRange(-1073741823, 0, i -> {
+            var word = new Word(getFalseBits());
+            word.set2(i);
+            assertEquals(i, word.getSigned2());
+        },
+                (i -> {
+                    var word = new Word(getFalseBits());
+                    word.set(i);
+                    assertEquals(i, word.getSigned());
+                }), "signed");
+        System.out.println(0);
+        compareRange(1, 1073741823, i -> {
+            var word = new Word(getFalseBits());
+            word.set2(i);
+            assertEquals(i, word.getSigned2());
+        },
+                (i -> {
+                    var word = new Word(getFalseBits());
+                    word.set(i);
+                    assertEquals(i, word.getSigned());
+                }), "signed");
+        System.out.println(1073741824);
+        compareRange(1073741824, 2147483647, i -> {
+            var word = new Word(getFalseBits());
+            word.set2(i);
+            assertEquals(i, word.getSigned2());
+        },
+                (i -> {
+                    var word = new Word(getFalseBits());
+                    word.set(i);
+                    assertEquals(i, word.getSigned());
+                }), "signed");
+    }
 }
