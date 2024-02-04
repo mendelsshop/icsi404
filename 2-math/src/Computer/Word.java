@@ -19,6 +19,10 @@ public class Word {
 	// .. last bit the 4294967296s placw will be index 31
 	// this can sometimes be a bit (no pun intended) counterintuitive for bit
 	// shifiting and to/from decimal conversions
+
+	// another note:
+	// most methods here have duplicates meaning often named like name2
+	// they are a more perfromant, but less elegant soloution to same problem
 	private Bit[] bits;
 
 	public Word(Bit[] startBits) {
@@ -147,6 +151,7 @@ public class Word {
 	}
 
 	@Override
+	// like my comment about rtl vs ltr above we output the strings as being ltr
 	public String toString() {
 		return Arrays.stream(bits).map(Bit::toString).collect(Collectors.joining(","));
 	}

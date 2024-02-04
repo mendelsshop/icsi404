@@ -33,7 +33,7 @@ public class Word {
 	}
 
 	public Word(int i) {
-		this(new Bit[32]);
+		bits = new Bit[32];
 		set(i);
 	}
 
