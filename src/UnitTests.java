@@ -13,7 +13,6 @@ import org.junit.Test;
 import Computer.*;
 
 public class UnitTests {
-
     private static final Word ZEROONE = new Word(new Bit[] {
             getFalse(), getTrue(), getFalse(), getTrue(), getFalse(), getTrue(), getFalse(), getTrue(), getFalse(),
             getTrue(), getFalse(), getTrue(), getFalse(), getTrue(), getFalse(), getTrue(), getFalse(), getTrue(),
