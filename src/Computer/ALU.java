@@ -69,9 +69,7 @@ public class ALU {
         return new Word(fst);
     }
 
-    // add4 should realy take 4 operands and add them together
-    // not the thing we use for multiplication
-    public static Word add4(Word a, Word b) {
+    public static Word mul2(Word a, Word b) {
         return IntStream.range(0, 32).boxed().filter(i -> b.getBit(i).getValue()).map(i -> a.leftShift2(i))
                 .reduce(getZero(), ALU::add);
 
@@ -83,51 +81,23 @@ public class ALU {
         return new Tuple<Bit, Bit>(s, cout);
     }
 
-    private static Tuple<Bit, Bit> add4(Bit w, Bit x, Bit y, Bit z) {
-        var s1 = w.xor(x).xor(y).xor(z);
-        var cout1 = w.and(x).or(w.and(y)).or(w.and(z)).or(x.and(y)).or(x.and(z)).or(y.and(z));
-        // wxyz
-        // w ***
-        // x* **
-        // y** *
-        // z***
-        return new Tuple<Bit, Bit>(s1, cout1);
-    }
-
-    protected static Word add4_(Word a, Word b, Word c, Word d) {
-        var fst = IntStream.range(0, 32).boxed()
-                .reduce(new Tuple<>(new Bit[32], new Bit[32]), (tuple, i) -> {
-                    var r1 = add4(a.getBit(i), b.getBit(i), c.getBit(i), d.getBit(i));
-                    tuple.fst()[i] = r1.fst();
-                    if (i == 0) {
-                        tuple.snd()[i] = new Bit(false);
-                    }
-                    if (i < 31) {
-                        tuple.snd()[i + 1] = r1.snd();
-                    }
-                    return tuple;
-                }, (i, x) -> x);
-        return add(new Word(fst.fst()), new Word(fst.snd()));
+    private static Tuple<Bit, Triple<Bit, Bit, Bit>> add4(Bit w, Bit x, Bit y, Bit z, Triple<Bit, Bit, Bit> cin) {
+        var r1 = add2(w, x, cin.fst());
+        var r2 = add2(r1.fst(), y, cin.snd());
+        var r3 = add2(r2.fst(), z, cin.thrd());
+        return new Tuple<>(r3.fst(), new Triple<>(r1.snd(), r2.snd(), r3.snd()));
     }
 
     protected static Word add4(Word a, Word b, Word c, Word d) {
-        Bit[] fst = IntStream.range(0, 32).boxed()
+        var bits = IntStream.range(0, 32).boxed()
                 .reduce(new Tuple<>(new Bit[32], new Triple<>(new Bit(false), new Bit(false), new Bit(false))),
                         (tuple, i) -> {
-                            var s1 = add2(a.getBit(i), b.getBit(i), tuple.snd().fst());
-                            var s2 = add2(c.getBit(i), d.getBit(i), tuple.snd().snd());
-                            var s3 = add2(s1.fst(), s2.fst(), tuple.snd().thrd());
-                            tuple.fst()[i] = s3.fst();
-                            return new Tuple<>(tuple.fst(), new Triple<>(s1.snd(), s2.snd(), s3.snd()));
+                            var r1 = add4(a.getBit(i), b.getBit(i), c.getBit(i), d.getBit(i), tuple.snd());
+                            tuple.fst()[i] = r1.fst();
+                            return new Tuple<>(tuple.fst(), r1.snd());
                         }, (i, x) -> x)
                 .fst();
-        Word add4 = add4_(a, b, c, d);
-        if (add4.getSigned() != new Word(fst).getSigned()) {
-            System.out.println(add4 + " " + new Word(fst) );
-            System.out.println(add4.getSigned() + " " + new Word(fst).getSigned() );
-            throw new RuntimeException();
-        }
-        return new Word(fst);
+        return new Word(bits);
     }
 
     public static Word mul(Word a, Word b) {
