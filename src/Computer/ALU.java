@@ -82,10 +82,16 @@ public class ALU {
     }
 
     private static Tuple<Bit, Triple<Bit, Bit, Bit>> add4(Bit w, Bit x, Bit y, Bit z, Triple<Bit, Bit, Bit> cin) {
-        var r1 = add2(w, x, cin.fst());
-        var r2 = add2(r1.fst(), y, cin.snd());
-        var r3 = add2(r2.fst(), z, cin.thrd());
-        return new Tuple<>(r3.fst(), new Triple<>(r1.snd(), r2.snd(), r3.snd()));
+        Bit cin1 = cin.fst();
+        Bit cin2 = cin.snd();
+        Bit cin3 = cin.thrd();
+        // TODO: tructhables to find better way to get cout1, 2
+        // then do all required gates once, with and stack them up ie cout1, may depend on partial sums
+        var cout = w.and(x).or(w.xor(x).and(cin1));
+        var cout1 = w.xor(x).xor(cin1).and(y).or(w.xor(x).xor(cin1).xor(y).and(cin2));
+        var cout2 = w.xor(x).xor(cin1).xor(y).xor(cin2).and(z).or(w.xor(x).xor(cin1).xor(y).xor(cin2).xor(z).and(cin3));
+        var s = w.xor(x).xor(cin1).xor(y).xor(cin2).xor(z).xor(cin3);
+        return new Tuple<>(s, new Triple<>(cout, cout1, cout2));
     }
 
     protected static Word add4(Word a, Word b, Word c, Word d) {
