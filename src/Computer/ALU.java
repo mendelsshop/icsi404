@@ -82,16 +82,39 @@ public class ALU {
     }
 
     private static Tuple<Bit, Triple<Bit, Bit, Bit>> add4(Bit w, Bit x, Bit y, Bit z, Triple<Bit, Bit, Bit> cin) {
+        // Bit cin1 = cin.fst();
+        // Bit cin2 = cin.snd();
+        // Bit cin3 = cin.thrd();
+        // // TODO: tructhables to find better way to get cout1, 2
+        // // then do all required gates once, with and stack them up ie cout1, may
+        // depend on partial sums
+        // var s1 = w.xor(x).xor(cin1);
+        // var cout = w.and(x).or(w.xor(x).and(cin1));
+        // var cout1 = s1.and(y).or(s1.and(cin2));
+        // var cout2 =
+        // w.xor(x).xor(cin1).xor(y).xor(cin2).and(z).or(w.xor(x).xor(cin1).xor(y).xor(cin2).xor(z).and(cin3));
+        // var s = w.xor(x).xor(cin1).xor(y).xor(cin2).xor(z).xor(cin3);
+        // return new Tuple<>(s, new Triple<>(cout, cout1, cout2));
+        // var r1 = add2(w, x, cin.fst());
         Bit cin1 = cin.fst();
+        var partial_s = w.xor(x);
+        var s = partial_s.xor(cin1);
+        var cout = w.and(x).or(partial_s.and(cin1));
+        // var r2 = add2(s, y, cin.snd());
         Bit cin2 = cin.snd();
+        var partial_s1 = s.xor(y);
+        var s1 = partial_s1.xor(cin2);
+        // var s1 = w.xor(x) .xor(cin1).xor(y).xor(cin2);
+        var cout1 = s.and(y).or(partial_s1.and(cin2));
+        // var cout1 = w.xor(x).xor(cin1).and(y).or(w.xor(x).xor(cin1).xor(y).and(cin2));
+        // var r3 = add2(s1, z, cin.thrd());
         Bit cin3 = cin.thrd();
-        // TODO: tructhables to find better way to get cout1, 2
-        // then do all required gates once, with and stack them up ie cout1, may depend on partial sums
-        var cout = w.and(x).or(w.xor(x).and(cin1));
-        var cout1 = w.xor(x).xor(cin1).and(y).or(w.xor(x).xor(cin1).xor(y).and(cin2));
-        var cout2 = w.xor(x).xor(cin1).xor(y).xor(cin2).and(z).or(w.xor(x).xor(cin1).xor(y).xor(cin2).xor(z).and(cin3));
-        var s = w.xor(x).xor(cin1).xor(y).xor(cin2).xor(z).xor(cin3);
-        return new Tuple<>(s, new Triple<>(cout, cout1, cout2));
+        var partial_s2 = s1.xor(z);
+        var s2 = partial_s2.xor(cin3);
+        // var s2 = w.xor(x).xor(cin1).xor(y).xor(cin2).xor(z).xor(cin3);
+        var cout2 = s1.and(z).or(s1.xor(z).and(cin3));
+        // var cout2 = w.xor(x).xor(cin1).xor(y).xor(cin2).and(z).or(w.xor(x).xor(cin1).xor(y).xor(cin2).xor(z).and(cin3));
+        return new Tuple<>(s2, new Triple<>(cout, cout1, cout2));
     }
 
     protected static Word add4(Word a, Word b, Word c, Word d) {
