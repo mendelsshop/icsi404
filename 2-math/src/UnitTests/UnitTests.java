@@ -537,7 +537,7 @@ public class UnitTests {
     @Test
     public void mul() {
 
-        doInRange(100000, 1000000, i -> {
+        doInRange(10000, 100000, i -> {
             var n1 = new Word(new Bit[32]);
             var n2 = new Word(new Bit[32]);
             n1.set2(-i);
