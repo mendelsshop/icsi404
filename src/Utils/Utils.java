@@ -49,13 +49,13 @@ public final class Utils {
                 return ZERO.clone();
         }
 
-        public static final void checkBitRange0(int i) {
+        public static final void checkBitRange0(final int i) {
                 if (i < 0 || i > 31) {
                         throw new IndexOutOfBoundsException();
                 }
         }
 
-        public static final void checkBitRange1(int i) {
+        public static final void checkBitRange1(final int i) {
                 if (i < 1 || i > 32) {
                         throw new IndexOutOfBoundsException();
                 }
@@ -65,5 +65,21 @@ public final class Utils {
         }
 
         public static final record Triple<T, U, V>(T fst, U snd, V thrd) {
+                public final Triple<T, U, V> setFst(T newFst) {
+                        return new Triple<T, U, V>(newFst, snd, thrd);
+                }
+
+                public final Triple<T, U, V> setSnd(U newSnd) {
+                        return new Triple<T, U, V>(fst, newSnd, thrd);
+                }
+                public final Triple<T, U, V> setThrd(V newThrd) {
+                        return new Triple<T, U, V>(fst, snd, newThrd);
+                }
+        }
+
+        @FunctionalInterface
+        public interface TriFunction<T, U, V, R> {
+                public R apply(T t, U u, V v);
+
         }
 }
