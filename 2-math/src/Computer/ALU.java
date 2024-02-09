@@ -82,39 +82,26 @@ public class ALU {
     }
 
     private static Tuple<Bit, Triple<Bit, Bit, Bit>> add4(Bit w, Bit x, Bit y, Bit z, Triple<Bit, Bit, Bit> cin) {
-        // Bit cin1 = cin.fst();
-        // Bit cin2 = cin.snd();
-        // Bit cin3 = cin.thrd();
-        // // TODO: tructhables to find better way to get cout1, 2
-        // // then do all required gates once, with and stack them up ie cout1, may
-        // depend on partial sums
-        // var s1 = w.xor(x).xor(cin1);
-        // var cout = w.and(x).or(w.xor(x).and(cin1));
-        // var cout1 = s1.and(y).or(s1.and(cin2));
-        // var cout2 =
-        // w.xor(x).xor(cin1).xor(y).xor(cin2).and(z).or(w.xor(x).xor(cin1).xor(y).xor(cin2).xor(z).and(cin3));
-        // var s = w.xor(x).xor(cin1).xor(y).xor(cin2).xor(z).xor(cin3);
-        // return new Tuple<>(s, new Triple<>(cout, cout1, cout2));
-        // var r1 = add2(w, x, cin.fst());
+        // TODO: explain this
+        // TODO add42 for mutable 'fast' version
         Bit cin1 = cin.fst();
-        var partial_s = w.xor(x);
-        var s = partial_s.xor(cin1);
-        var cout = w.and(x).or(partial_s.and(cin1));
-        // var r2 = add2(s, y, cin.snd());
         Bit cin2 = cin.snd();
-        var partial_s1 = s.xor(y);
-        var s1 = partial_s1.xor(cin2);
-        // var s1 = w.xor(x) .xor(cin1).xor(y).xor(cin2);
-        var cout1 = s.and(y).or(partial_s1.and(cin2));
-        // var cout1 = w.xor(x).xor(cin1).and(y).or(w.xor(x).xor(cin1).xor(y).and(cin2));
-        // var r3 = add2(s1, z, cin.thrd());
         Bit cin3 = cin.thrd();
-        var partial_s2 = s1.xor(z);
-        var s2 = partial_s2.xor(cin3);
-        // var s2 = w.xor(x).xor(cin1).xor(y).xor(cin2).xor(z).xor(cin3);
-        var cout2 = s1.and(z).or(s1.xor(z).and(cin3));
-        // var cout2 = w.xor(x).xor(cin1).xor(y).xor(cin2).and(z).or(w.xor(x).xor(cin1).xor(y).xor(cin2).xor(z).and(cin3));
-        return new Tuple<>(s2, new Triple<>(cout, cout1, cout2));
+        var s2 = w.xor(x).xor(cin1).xor(y).xor(cin2).xor(z).xor(cin3);
+        // why cant java have let in or allow nested lambdas nicley???
+        TriFunction<Bit, Bit, Triple<Bit, Bit, Bit>, Tuple<Bit, Triple<Bit, Bit, Bit>>> getNewCarriesInner = (b, last,
+                cout) -> b.and(last).getValue() ? new Tuple<>(new Bit(false),
+                        (cout.fst().getValue() ? (cout.snd().getValue() ? cout.setThrd(last) : cout.setSnd(last))
+                                : cout.setFst(last)))
+                        : new Tuple<>(b.or(last), cout);
+        Function<Bit, Function<Tuple<Bit, Triple<Bit, Bit, Bit>>, Tuple<Bit, Triple<Bit, Bit, Bit>>>> getNewCarries = (
+                b) -> (lastAndCarries) -> getNewCarriesInner.apply(b, lastAndCarries.fst(), lastAndCarries.snd());
+        var couts = getNewCarries.apply(x).andThen(getNewCarries.apply(y)).andThen(getNewCarries.apply(z))
+                .andThen(getNewCarries.apply(cin1)).andThen(getNewCarries.apply(cin2))
+                .andThen(getNewCarries.apply(cin3)).apply(new Tuple<>(w,
+                        new Triple<Bit, Bit, Bit>(new Bit(false), new Bit(false), new Bit(false))))
+                .snd();
+        return new Tuple<>(s2, couts);
     }
 
     protected static Word add4(Word a, Word b, Word c, Word d) {
