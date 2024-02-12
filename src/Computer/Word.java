@@ -108,7 +108,6 @@ public class Word {
 		return map2(Bit::not);
 	}
 
-	// TODO: should we range check on shift ie is 5 << 45 ok?
 	public Word leftShift(int amount) {
 		checkBitRange0(amount);
 		var zerod = Stream.generate(() -> new Bit(false)).limit(amount);

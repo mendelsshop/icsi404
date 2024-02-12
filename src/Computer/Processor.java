@@ -155,9 +155,9 @@ public class Processor {
             case CALL -> throw new UnsupportedOperationException("Unimplemented case: " + getInstructionCode());
             case LOAD -> {
                 switch (getInstructionFormat()) {
-                    case TWOR -> setRegister(Rd, MainMemory.read(ALU.add2(Rs1, Immediate)));
-                    case THREER -> setRegister(Rd, MainMemory.read(ALU.add2(Rs1, Rs2)));
-                    case ONER -> setRegister(Rd, MainMemory.read(ALU.add2(Rd, Immediate)));
+                    case TWOR -> setRegister(Rd, MainMemory.read(ALU.add(Rs1, Immediate)));
+                    case THREER -> setRegister(Rd, MainMemory.read(ALU.add(Rs1, Rs2)));
+                    case ONER -> setRegister(Rd, MainMemory.read(ALU.add(Rd, Immediate)));
                     case ZEROR -> {
                         // TODO: when we say Return is pop and set the PC
                         // or any instruction does some sub indtruction do we just do that basic version
@@ -197,8 +197,8 @@ public class Processor {
                     // TODO: when adding should we use ALU.add2 or call dispatch on alu (or maybe
                     // move add2/add4 to word)
                     case TWOR ->
-                        MainMemory.write(ALU.add2(Rd, Immediate), Rs1);
-                    case THREER -> MainMemory.write(ALU.add2(Rd, Rs1), Rs2);
+                        MainMemory.write(ALU.add(Rd, Immediate), Rs1);
+                    case THREER -> MainMemory.write(ALU.add(Rd, Rs1), Rs2);
                     case ONER -> MainMemory.write(Rd, Immediate);
                     // TODO: shoulkld we error if not used
                     case ZEROR -> {
@@ -208,19 +208,19 @@ public class Processor {
             case BRANCH -> {
                 switch (getInstructionFormat()) {
                     case ONER ->
-                        PC.copy(ALU.add2(PC, Immediate));
+                        PC.copy(ALU.add(PC, Immediate));
                     case THREER -> {
                         alu.op1 = Rs1;
                         alu.op2 = Rs2;
                         if (alu.doBooleanOperation(op)) {
-                            PC.copy(ALU.add2(PC, Immediate));
+                            PC.copy(ALU.add(PC, Immediate));
                         }
                     }
                     case TWOR -> {
                         alu.op1 = Rs1;
                         alu.op2 = Rd;
                         if (alu.doBooleanOperation(op)) {
-                            PC.copy(ALU.add2(PC, Immediate));
+                            PC.copy(ALU.add(PC, Immediate));
                         }
                     }
                     case ZEROR -> PC.copy(Immediate);
