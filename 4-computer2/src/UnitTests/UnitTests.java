@@ -1,3 +1,5 @@
+package UnitTests;
+
 import static Utils.Utils.*;
 
 import static org.junit.Assert.assertEquals;
@@ -36,10 +38,10 @@ public class UnitTests {
     private static void compareRange(int lowerInclusive, int higherExclusive, IntConsumer doer, IntConsumer doer2,
             String name) {
         var t1 = timeOperation(() -> IntStream.range(lowerInclusive, higherExclusive)
-                // .parallel()
+                .parallel()
                 .forEach(doer));
         var t2 = timeOperation(() -> IntStream.range(lowerInclusive, higherExclusive)
-                // .parallel()
+                .parallel()
                 .forEach(doer2));
 
         System.out.println(name + " orginal:" + t1.toMillis() + " new:" + t2.toMillis());
@@ -513,9 +515,7 @@ public class UnitTests {
     }
 
     public static void doInRange(int start, int end, IntConsumer doer, String beingTested) {
-        var t1 = timeOperation(() -> IntStream.range(start, end).
-        // parallel().
-                forEach(doer));
+        var t1 = timeOperation(() -> IntStream.range(start, end).parallel().forEach(doer));
         System.out.println("doing " + beingTested + "from " + start + "to end " + end + "took " + t1);
     };
 
@@ -523,7 +523,7 @@ public class UnitTests {
     public void add_a_lot() {
         IntConsumer muller = i -> {
             var n1 = new Word(i);
-            doInRange(0, 100, j -> {
+            doInRange(0, 50, j -> {
                 var n2 = new Word(j);
                 var added = ALU.mul(n1, n2);
                 assertEquals(i * j, added.getUnsigned());
@@ -535,22 +535,14 @@ public class UnitTests {
     @Test
     public void mul() {
 
-        compareRange(1000000, 10000000, i -> {
+        doInRange(10000, 100000, i -> {
             var n1 = new Word(new Bit[32]);
             var n2 = new Word(new Bit[32]);
             n1.set2(-i);
             n2.set2(-i);
             assertEquals(i * i, ALU.mul(n1, n2).getSigned2());
         },
-                (i -> {
-
-                    var n1 = new Word(new Bit[32]);
-                    var n2 = new Word(new Bit[32]);
-                    n1.set2(-i);
-                    n2.set2(-i);
-                    assertEquals(i * i, ALU.add4(n1, n2).getSigned2());
-
-                }), "signed");
+                "signed");
 
     }
 

@@ -108,7 +108,6 @@ public class Word {
 		return map2(Bit::not);
 	}
 
-	// TODO: should we range check on shift ie is 5 << 45 ok?
 	public Word leftShift(int amount) {
 		checkBitRange0(amount);
 		var zerod = Stream.generate(() -> new Bit(false)).limit(amount);
@@ -278,7 +277,8 @@ public class Word {
 
 	private Word map(BiFunction<Bit, Bit, Bit> mapper, Word other) {
 		return new Word(
-				Stream.iterate(0, i -> i < 32, i -> i + 1).map(i -> mapper.apply(bits[i], other.bits[i]))
+				Stream.iterate(0, i -> i < 32, i -> i + 1)
+						.map(i -> mapper.apply(bits[i], other.bits[i]))
 						.collect(Collectors.toList()).toArray(new Bit[32]));
 	}
 

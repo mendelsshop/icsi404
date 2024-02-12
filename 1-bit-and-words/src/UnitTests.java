@@ -36,10 +36,10 @@ public class UnitTests {
     private static void compareRange(int lowerInclusive, int higherExclusive, IntConsumer doer, IntConsumer doer2,
             String name) {
         var t1 = timeOperation(() -> IntStream.range(lowerInclusive, higherExclusive)
-                // .parallel()
+                .parallel()
                 .forEach(doer));
         var t2 = timeOperation(() -> IntStream.range(lowerInclusive, higherExclusive)
-                // .parallel()
+                .parallel()
                 .forEach(doer2));
 
         System.out.println(name + " orginal:" + t1.toMillis() + " new:" + t2.toMillis());

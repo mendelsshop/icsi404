@@ -65,14 +65,15 @@ public final class Utils {
         }
 
         public static final record Triple<T, U, V>(T fst, U snd, V thrd) {
-                public final Triple<T, U, V> setFst(T newFst) {
+                public final Triple<T, U, V> setFst(final T newFst) {
                         return new Triple<T, U, V>(newFst, snd, thrd);
                 }
 
-                public final Triple<T, U, V> setSnd(U newSnd) {
+                public final Triple<T, U, V> setSnd(final U newSnd) {
                         return new Triple<T, U, V>(fst, newSnd, thrd);
                 }
-                public final Triple<T, U, V> setThrd(V newThrd) {
+
+                public final Triple<T, U, V> setThrd(final V newThrd) {
                         return new Triple<T, U, V>(fst, snd, newThrd);
                 }
         }
