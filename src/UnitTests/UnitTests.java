@@ -516,7 +516,7 @@ public class UnitTests {
 
     public static void doInRange(int start, int end, IntConsumer doer, String beingTested) {
         var t1 = timeOperation(() -> IntStream.range(start, end).
-        // parallel().
+        parallel().
                 forEach(doer));
         System.out.println("doing " + beingTested + "from " + start + "to end " + end + "took " + t1);
     };
