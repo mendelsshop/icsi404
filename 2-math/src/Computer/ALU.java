@@ -1,11 +1,9 @@
 package Computer;
 
 import static Utils.Utils.getZero;
-
 import java.util.Arrays;
 import java.util.function.Function;
 import java.util.stream.IntStream;
-
 import Utils.Utils.*;
 
 public class ALU {
@@ -20,20 +18,29 @@ public class ALU {
         private static final Bit[] ADD = new Bit[] { new Bit(true), new Bit(true), new Bit(true), new Bit(false) };
         private static final Bit[] SUB = new Bit[] { new Bit(true), new Bit(true), new Bit(true), new Bit(true) };
         private static final Bit[] MUL = new Bit[] { new Bit(false), new Bit(true), new Bit(true), new Bit(true) };
+        private static final Word smallestBitMask = new Word(new Bit[] { new Bit(true), new Bit(true), new Bit(true),
+                        new Bit(true), new Bit(true), new Bit(false), new Bit(false), new Bit(false), new Bit(false),
+                        new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false),
+                        new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false),
+                        new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false),
+                        new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false), });
 
-        private static final Word smallestBitMask = new Word(new Bit[] {
-                        new Bit(true), new Bit(true), new Bit(true), new Bit(true), new Bit(true), new Bit(false),
-                        new Bit(false),
-                        new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false),
-                        new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false),
-                        new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false),
-                        new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false), new Bit(false),
-                        new Bit(false),
-        });
+        public void setOp1(Word op1) {
+                this.op1 = op1;
+        }
 
-        public Word op1;
-        public Word op2;
-        public Word result;
+        private Word op1;
+
+        public void setOp2(Word op2) {
+                this.op2 = op2;
+        }
+
+        private Word op2;
+        private Word result;
+
+        public Word getResult() {
+                return result;
+        }
 
         public void doOperation(Bit[] operation) {
                 if (Arrays.equals(operation, AND)) {
@@ -76,7 +83,6 @@ public class ALU {
         public static Word mul2(Word a, Word b) {
                 return IntStream.range(0, 32).boxed().filter(i -> b.getBit(i).getValue()).map(i -> a.leftShift2(i))
                                 .reduce(getZero(), ALU::add);
-
         }
 
         // Full adder
@@ -141,29 +147,21 @@ public class ALU {
 
         public static Word mul(Word a, Word b) {
                 Function<Integer, Word> indexToWord = i -> b.getBit(i).getValue() ? a.leftShift2(i) : getZero();
-                return add(
-                                add4(
-                                                add4(indexToWord.apply(0), indexToWord.apply(1), indexToWord.apply(2),
-                                                                indexToWord.apply(3)),
-                                                add4(indexToWord.apply(4), indexToWord.apply(5), indexToWord.apply(6),
-                                                                indexToWord.apply(7)),
-                                                add4(indexToWord.apply(8), indexToWord.apply(9), indexToWord.apply(10),
-                                                                indexToWord.apply(11)),
-                                                add4(indexToWord.apply(12), indexToWord.apply(13),
-                                                                indexToWord.apply(14),
-                                                                indexToWord.apply(15))),
-                                add4(
-                                                add4(indexToWord.apply(16), indexToWord.apply(17),
-                                                                indexToWord.apply(18),
-                                                                indexToWord.apply(19)),
+                return add(add4(add4(indexToWord.apply(0), indexToWord.apply(1), indexToWord.apply(2),
+                                indexToWord.apply(3)),
+                                add4(indexToWord.apply(4), indexToWord.apply(5), indexToWord.apply(6),
+                                                indexToWord.apply(7)),
+                                add4(indexToWord.apply(8), indexToWord.apply(9), indexToWord.apply(10),
+                                                indexToWord.apply(11)),
+                                add4(indexToWord.apply(12), indexToWord.apply(13), indexToWord.apply(14),
+                                                indexToWord.apply(15))),
+                                add4(add4(indexToWord.apply(16), indexToWord.apply(17), indexToWord.apply(18),
+                                                indexToWord.apply(19)),
                                                 add4(indexToWord.apply(20), indexToWord.apply(21),
-                                                                indexToWord.apply(22),
-                                                                indexToWord.apply(23)),
+                                                                indexToWord.apply(22), indexToWord.apply(23)),
                                                 add4(indexToWord.apply(24), indexToWord.apply(25),
-                                                                indexToWord.apply(26),
-                                                                indexToWord.apply(27)),
+                                                                indexToWord.apply(26), indexToWord.apply(27)),
                                                 add4(indexToWord.apply(28), indexToWord.apply(29),
-                                                                indexToWord.apply(30),
-                                                                indexToWord.apply(31))));
+                                                                indexToWord.apply(30), indexToWord.apply(31))));
         }
 }
