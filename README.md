@@ -1,4 +1,4 @@
-# 1-bit-and-words
+# 2-math
 
 ## File structure
 
@@ -7,9 +7,14 @@ root
 ├── README.md
 └── src
     ├── Computer
-    │   ├── Bit.java
-    │   └── Word.java
-    ├── UnitTests.java
+    │   ├── ALU.java
+    │   ├── Bit.java
+    │   └── Word.java
+    ├── UnitTests
+    │   ├── ALUTests.java
+    │   ├── BitTests.java
+    │   ├── UnitTests.java
+    │   └── WordTests.java
     └── Utils
         └── Utils.java
 ```
