@@ -130,7 +130,48 @@ public class ALUTests {
     }
 
     @Test
-    // tests that the alu properly decodes and does the correct instruction for a given 4 bits
+    public void addbignumbertonegativebignumer() {
+        MatrixDoMath((a, b) -> a + b, ALU::add, "add",
+                new Tuple<Integer, Integer>(Integer.MAX_VALUE - 10, Integer.MAX_VALUE),
+                new Tuple<Integer, Integer>(Integer.MAX_VALUE - 10, Integer.MAX_VALUE));
+    }
+
+    @Test
+    public void addnegativebignumbertobignumber() {
+        MatrixDoMath((a, b) -> a + b, ALU::add, "add",
+                new Tuple<Integer, Integer>(Integer.MAX_VALUE, Integer.MAX_VALUE + 10),
+                new Tuple<Integer, Integer>(Integer.MAX_VALUE, Integer.MAX_VALUE + 10));
+    }
+
+    @Test
+    public void mulbignumbertobignumber() {
+        MatrixDoMath((a, b) -> a * b, ALU::mul, "mul", new Tuple<Integer, Integer>(0,
+                10),
+                new Tuple<Integer, Integer>(0, 10));
+    }
+
+    @Test
+    public void mulnegativebignumbertonegativebignumber() {
+        MatrixDoMath((a, b) -> a * b, ALU::mul, "mul", new Tuple<Integer, Integer>(-10, 0),
+                new Tuple<Integer, Integer>(-10, 0));
+    }
+
+    @Test
+    public void subbignumbertobignumber() {
+        MatrixDoMath((a, b) -> a - b, ALU::sub, "sub", new Tuple<Integer, Integer>(0,
+                10),
+                new Tuple<Integer, Integer>(0, 10));
+    }
+
+    @Test
+    public void subnegativebignumbertonegativebignumber() {
+        MatrixDoMath((a, b) -> a - b, ALU::sub, "sub", new Tuple<Integer, Integer>(-10, 0),
+                new Tuple<Integer, Integer>(-10, 0));
+    }
+
+    @Test
+    // tests that the alu properly decodes and does the correct instruction for a
+    // given 4 bits
     public void ALUDecodeTest() {
 
         var alu = new ALU();
@@ -185,7 +226,7 @@ public class ALUTests {
         alu.setOp1(new Word(-2));
         alu.setOp2(new Word(65));
         alu.doOperation(MUL);
-        assertEquals(-2*65, alu.getResult().getSigned());
+        assertEquals(-2 * 65, alu.getResult().getSigned());
     }
 
     @Test
