@@ -63,6 +63,20 @@ public class ALUTests {
     @Test
     public void BasicSubTest() {
 
+        assertEquals(0, ALU.sub(getZero(), getZero()).getSigned());
+        assertEquals(1, ALU.sub(getZero(), getBigNumber()).getSigned());
+        assertEquals(-1, ALU.sub(getBigNumber(), getZero()).getSigned());
+        assertEquals(0, ALU.sub(getBigNumber(), getBigNumber()).getSigned());
+        // Testing subtraction wrap around
+        assertEquals(Integer.MAX_VALUE, ALU.sub(new Word(Integer.MIN_VALUE), new Word(1)).getSigned());
+        assertEquals(Integer.MIN_VALUE, ALU.sub(new Word(Integer.MAX_VALUE), new Word(-1)).getSigned());
+        // 2 - 2 = 0
+        assertEquals(0, ALU.sub(new Word(2), new Word(2)).getSigned());
+        // bignumber - bignumber = 0
+        assertEquals(0, ALU.sub(new Word(Integer.MIN_VALUE), new Word(Integer.MIN_VALUE)).getSigned());
+        // 0 - -7 = 7
+        assertEquals(7, ALU.sub(getZero(), new Word(-7)).getSigned());
+
     }
 
     public void MatrixDoMath(BiFunction<Integer, Integer, Integer> actualOp, BiFunction<Word, Word, Word> op,
@@ -113,6 +127,65 @@ public class ALUTests {
     public void subnegative10to0() {
         MatrixDoMath((a, b) -> a - b, ALU::sub, "sub", new Tuple<Integer, Integer>(-10, 0),
                 new Tuple<Integer, Integer>(-10, 0));
+    }
+
+    @Test
+    // tests that the alu properly decodes and does the correct instruction for a given 4 bits
+    public void ALUDecodeTest() {
+
+        var alu = new ALU();
+        // and
+        alu.setOp1(new Word(56));
+        alu.setOp2(new Word(900_000));
+        alu.doOperation(AND);
+        assertEquals(56 & 900_000, alu.getResult().getSigned());
+
+        // or
+        alu.setOp1(new Word(-756));
+        alu.setOp2(new Word(24000));
+        alu.doOperation(OR);
+        assertEquals(-756 | 24000, alu.getResult().getSigned());
+
+        // xor
+        alu.setOp1(new Word(99_999));
+        alu.setOp2(new Word(654));
+        alu.doOperation(XOR);
+        assertEquals(99_999 ^ 654, alu.getResult().getSigned());
+
+        // not
+        alu.setOp1(new Word(135790));
+        alu.doOperation(NOT);
+        assertEquals(~135790, alu.getResult().getSigned());
+
+        // left shift
+        alu.setOp1(new Word(891));
+        alu.setOp2(new Word(27));
+        alu.doOperation(LEFT_SHIFT);
+        assertEquals(891 << 27, alu.getResult().getSigned());
+
+        // right shift
+        alu.setOp1(new Word(-1_000_000));
+        alu.setOp2(new Word(13));
+        alu.doOperation(RIGHT_SHIFT);
+        assertEquals((-1_000_000) >>> 13, alu.getResult().getSigned());
+
+        // add
+        alu.setOp1(new Word(1795));
+        alu.setOp2(new Word(1820));
+        alu.doOperation(ADD);
+        assertEquals(1795 + 1820, alu.getResult().getSigned());
+
+        // sub
+        alu.setOp1(new Word(613));
+        alu.setOp2(new Word(248));
+        alu.doOperation(SUB);
+        assertEquals(613 - 248, alu.getResult().getSigned());
+
+        // mul
+        alu.setOp1(new Word(-2));
+        alu.setOp2(new Word(65));
+        alu.doOperation(MUL);
+        assertEquals(-2*65, alu.getResult().getSigned());
     }
 
     @Test
