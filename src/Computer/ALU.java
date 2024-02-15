@@ -60,13 +60,17 @@ public class ALU {
                 } else if (Arrays.equals(operation, ADD)) {
                         result = add(op1, op2);
                 } else if (Arrays.equals(operation, SUB)) {
-                        var negated = op2.negate();
-                        result = add(op1, negated);
+                        result = sub(op1, op2);
                 } else if (Arrays.equals(operation, MUL)) {
                         result = mul(op1, op2);
                 } else {
                         throw new RuntimeException();
                 }
+        }
+
+        public static Word sub(Word a, Word b) {
+                var negated = b.negate();
+                return add(a, negated);
         }
 
         public static Word add(Word a, Word b) {
