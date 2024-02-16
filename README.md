@@ -22,3 +22,5 @@ root
 ## Note
 
 Might require java21+ to compile as this may se advanced pattenmatching and records.
+
+Some Unittests may take some time to run as they have full coverage of all the numbers
