@@ -57,7 +57,7 @@ public class ALUTests {
         assertEquals(1234567 * 89, ALU.mul(new Word(-1_234_567), new Word(-89)).getSigned());
 
         // do min_value + 1 b/c more negatives then positives
-        assertEquals(Integer.MAX_VALUE, ALU.mul(new Word(Integer.MIN_VALUE - 1), new Word(-1)).getSigned());
+        assertEquals(Integer.MAX_VALUE, ALU.mul(new Word(Integer.MIN_VALUE+1), new Word(-1)).getSigned());
     }
 
     @Test
@@ -139,34 +139,77 @@ public class ALUTests {
     @Test
     public void addnegativebignumbertobignumber() {
         MatrixDoMath((a, b) -> a + b, ALU::add, "add",
+                new Tuple<Integer, Integer>(Integer.MIN_VALUE, Integer.MIN_VALUE + 10),
+                new Tuple<Integer, Integer>(Integer.MIN_VALUE, Integer.MIN_VALUE + 10));
+    }
+
+    @Test
+    public void mulbignumbertobignumber() {
+        MatrixDoMath((a, b) -> a * b, ALU::mul, "mul",
                 new Tuple<Integer, Integer>(Integer.MAX_VALUE, Integer.MAX_VALUE + 10),
                 new Tuple<Integer, Integer>(Integer.MAX_VALUE, Integer.MAX_VALUE + 10));
     }
 
     @Test
-    public void mulbignumbertobignumber() {
+    public void mulnegativebignumbertonegativebignumber() {
+        MatrixDoMath((a, b) -> a * b, ALU::mul, "mul",
+                new Tuple<Integer, Integer>(Integer.MIN_VALUE - 10, Integer.MIN_VALUE),
+                new Tuple<Integer, Integer>(Integer.MIN_VALUE - 10, Integer.MIN_VALUE));
+    }
+
+    @Test
+    public void subbignumbertobignumber() {
+        MatrixDoMath((a, b) -> a - b, ALU::sub, "sub",
+                new Tuple<Integer, Integer>(Integer.MAX_VALUE, Integer.MAX_VALUE + 10),
+                new Tuple<Integer, Integer>(Integer.MAX_VALUE, Integer.MAX_VALUE + 10));
+    }
+
+    @Test
+    public void subnegativebignumbertonegativebignumber() {
+        MatrixDoMath((a, b) -> a - b, ALU::sub, "sub",
+                new Tuple<Integer, Integer>(Integer.MIN_VALUE - 10, Integer.MIN_VALUE),
+                new Tuple<Integer, Integer>(Integer.MIN_VALUE - 10, Integer.MIN_VALUE));
+    }
+
+    @Test
+    public void addmiddlenumbertomiddlenumber() {
+        MatrixDoMath((a, b) -> a + b, ALU::add, "add",
+                new Tuple<Integer, Integer>((Integer.MAX_VALUE / 2) - 10, (Integer.MAX_VALUE / 2)),
+                new Tuple<Integer, Integer>((Integer.MAX_VALUE / 2) - 10, (Integer.MAX_VALUE / 2)));
+    }
+
+    @Test
+    public void addnegativemiddlenumbertonegativemiddlenumber() {
+        MatrixDoMath((a, b) -> a + b, ALU::add, "add",
+                new Tuple<Integer, Integer>((Integer.MIN_VALUE / 2), (Integer.MIN_VALUE / 2) + 10),
+                new Tuple<Integer, Integer>((Integer.MIN_VALUE / 2), (Integer.MIN_VALUE / 2) + 10));
+    }
+
+    @Test
+    public void mulmiddlenumbertomiddlenumber() {
         MatrixDoMath((a, b) -> a * b, ALU::mul, "mul", new Tuple<Integer, Integer>(0,
                 10),
                 new Tuple<Integer, Integer>(0, 10));
     }
 
     @Test
-    public void mulnegativebignumbertonegativebignumber() {
+    public void mulnegativemiddlenumbertonegativemiddlenumber() {
         MatrixDoMath((a, b) -> a * b, ALU::mul, "mul", new Tuple<Integer, Integer>(-10, 0),
                 new Tuple<Integer, Integer>(-10, 0));
     }
 
     @Test
-    public void subbignumbertobignumber() {
+    public void submiddlenumbertomiddlenumber() {
         MatrixDoMath((a, b) -> a - b, ALU::sub, "sub", new Tuple<Integer, Integer>(0,
                 10),
                 new Tuple<Integer, Integer>(0, 10));
     }
 
     @Test
-    public void subnegativebignumbertonegativebignumber() {
-        MatrixDoMath((a, b) -> a - b, ALU::sub, "sub", new Tuple<Integer, Integer>(-10, 0),
-                new Tuple<Integer, Integer>(-10, 0));
+    public void subnegativemiddlenumbertonegativemiddlenumber() {
+        MatrixDoMath((a, b) -> a - b, ALU::sub, "sub",
+                new Tuple<Integer, Integer>((Integer.MIN_VALUE / 2) - 10, (Integer.MIN_VALUE / 2)),
+                new Tuple<Integer, Integer>((Integer.MIN_VALUE / 2) - 10, (Integer.MIN_VALUE / 2)));
     }
 
     @Test
