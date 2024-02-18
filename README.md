@@ -1,4 +1,4 @@
-# 2-math
+# 3-memory-and_computer-part1
 
 ## File structure
 
@@ -9,6 +9,8 @@ root
     ├── Computer
     │   ├── ALU.java
     │   ├── Bit.java
+    │   ├── MainMemory.java
+    │   ├── Processor.java
     │   └── Word.java
     ├── UnitTests
     │   ├── ALUTests.java
