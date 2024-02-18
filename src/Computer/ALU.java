@@ -84,7 +84,7 @@ public class ALU {
                 return new Word(fst);
         }
 
-        // not the real multiply just a test method look at mul 
+        // not the real multiply just a test method look at mul
         public static Word mul2(Word a, Word b) {
                 return IntStream.range(0, 32).boxed().filter(i -> b.getBit(i).getValue()).map(i -> a.leftShift2(i))
                                 .reduce(getZero(), ALU::add);
