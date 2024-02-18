@@ -170,24 +170,21 @@ public class Processor {
                 switch (getInstructionFormat()) {
                     case ZEROR -> halted.set(true);
                     case ONER -> {
-                        // TODO: do we sign extend immidiate
-                        // do we store immidiate in the register (probably not) or do we set alu.result
-                        // to immidiate and let store do the work (what im doing)
-                        alu.result = Immediate;
+                        // do we sign extend immidiate (no)
+                        setRegister(Rd, Immediate);
                     }
                     case THREER -> {
-                        alu.op1 = getRegister(Rs1);
-                        alu.op2 = getRegister(Rs2);
+                        alu.setOp1(getRegister(Rs1));
+                        alu.setOp2(getRegister(Rs2));
                         alu.doOperation(op);
                     }
                     case TWOR -> {
                         // put rs1 in op1 and op2
-                        alu.op1 = getRegister(Rd);
-                        alu.op2 = getRegister(Rs1);
+                        alu.setOp1(getRegister(Rd));
+                        alu.setOp2(getRegister(Rs1));
                         alu.doOperation(op);
 
                     }
-                    default -> throw new IllegalArgumentException("Unexpected value: " + getInstructionFormat());
                 }
             }
             case POP -> throw new UnsupportedOperationException("Unimplemented case: " + getInstructionCode());
@@ -210,15 +207,15 @@ public class Processor {
                     case ONER ->
                         PC.copy(ALU.add(PC, Immediate));
                     case THREER -> {
-                        alu.op1 = Rs1;
-                        alu.op2 = Rs2;
+                        alu.setOp1(Rs1);
+                        alu.setOp2(Rs2);
                         if (alu.doBooleanOperation(op)) {
                             PC.copy(ALU.add(PC, Immediate));
                         }
                     }
                     case TWOR -> {
-                        alu.op1 = Rs1;
-                        alu.op2 = Rd;
+                        alu.setOp1(Rs1);
+                        alu.setOp2(Rd);
                         if (alu.doBooleanOperation(op)) {
                             PC.copy(ALU.add(PC, Immediate));
                         }
@@ -232,9 +229,22 @@ public class Processor {
     }
 
     private void store() {
-        // TODO: maybe dont store if its a halt
-        // also result wont always be from alu in future
-        setRegister(Rd, alu.result);
+        switch (getInstructionCode()) {
+            case MATH -> {
+                switch (getInstructionFormat()) {
+                    case THREER, TWOR -> setRegister(Rd, alu.getResult());
+                    default -> {
+                    }
+                }
+            }
+            case BRANCH -> throw new UnsupportedOperationException("Unimplemented case: " + getInstructionCode());
+            case CALL -> throw new UnsupportedOperationException("Unimplemented case: " + getInstructionCode());
+            case LOAD -> throw new UnsupportedOperationException("Unimplemented case: " + getInstructionCode());
+            case POP -> throw new UnsupportedOperationException("Unimplemented case: " + getInstructionCode());
+            case PUSH -> throw new UnsupportedOperationException("Unimplemented case: " + getInstructionCode());
+            case STORE -> throw new UnsupportedOperationException("Unimplemented case: " + getInstructionCode());
+        }
+
     }
 
     private void fetch() {
