@@ -1,4 +1,4 @@
-# 3-memory-and_computer-part1
+# 4-computer-2
 
 ## File structure
 
@@ -15,6 +15,7 @@ root
     ├── UnitTests
     │   ├── ALUTests.java
     │   ├── BitTests.java
+    │   ├── ProcessorTests.java
     │   ├── UnitTests.java
     │   └── WordTests.java
     └── Utils
