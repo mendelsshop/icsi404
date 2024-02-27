@@ -140,7 +140,12 @@ public class Processor {
             default -> throw new RuntimeException();
         };
     }
+
     // TODO: do we always use store to do the store part (ie for load,store)?
+
+    // result of execute - could the address of to store in memory or what to store
+    // depending on instructins
+    private Word result;
 
     private void execute() {
 
@@ -152,12 +157,23 @@ public class Processor {
         } : new Bit[4];
         System.out.println(getInstructionCode() + " " + getInstructionFormat());
         switch (getInstructionCode()) {
-            case CALL -> throw new UnsupportedOperationException("Unimplemented case: " + getInstructionCode());
+            case CALL -> {
+                switch (getInstructionFormat()) {
+                    case ONER ->
+                        throw new UnsupportedOperationException("Unimplemented case: " + getInstructionFormat());
+                    case THREER ->
+                        throw new UnsupportedOperationException("Unimplemented case: " + getInstructionFormat());
+                    case TWOR ->
+                        throw new UnsupportedOperationException("Unimplemented case: " + getInstructionFormat());
+                    case ZEROR ->
+                        throw new UnsupportedOperationException("Unimplemented case: " + getInstructionFormat());
+                }
+            }
             case LOAD -> {
                 switch (getInstructionFormat()) {
-                    case TWOR -> setRegister(Rd, MainMemory.read(ALU.add(Rs1, Immediate)));
-                    case THREER -> setRegister(Rd, MainMemory.read(ALU.add(Rs1, Rs2)));
-                    case ONER -> setRegister(Rd, MainMemory.read(ALU.add(Rd, Immediate)));
+                    case TWOR -> result = ALU.add(Rs1, Immediate);
+                    case THREER -> result = ALU.add(Rs1, Rs2);
+                    case ONER -> result = ALU.add(Rd, Immediate);
                     case ZEROR -> {
                         // TODO: when we say Return is pop and set the PC
                         // or any instruction does some sub indtruction do we just do that basic version
@@ -166,8 +182,9 @@ public class Processor {
                 }
             }
             case MATH -> {
-
                 switch (getInstructionFormat()) {
+                    // for zeror and oner these are "trvial things" and we don't differtiate execute
+                    // and store
                     case ZEROR -> halted.set(true);
                     case ONER -> {
                         // do we sign extend immidiate (no)
@@ -177,54 +194,102 @@ public class Processor {
                         alu.setOp1(getRegister(Rs1));
                         alu.setOp2(getRegister(Rs2));
                         alu.doOperation(op);
+                        result = alu.getResult();
                     }
                     case TWOR -> {
                         // put rs1 in op1 and op2
                         alu.setOp1(getRegister(Rd));
                         alu.setOp2(getRegister(Rs1));
                         alu.doOperation(op);
-
+                        result = alu.getResult();
                     }
                 }
             }
-            case POP -> throw new UnsupportedOperationException("Unimplemented case: " + getInstructionCode());
-            case PUSH -> throw new UnsupportedOperationException("Unimplemented case: " + getInstructionCode());
+            case POP -> {
+                switch (getInstructionFormat()) {
+                    // PEEK (does not modify sp)
+                    case TWOR -> {
+                        var sub = ALU.add(Rs1, Immediate);
+                        result = MainMemory.read(ALU.add(SP, sub));
+                    }
+                    // PEEK (does not modify sp)
+                    case THREER -> {
+                        var sub = ALU.add(Rs1, Rs2);
+                        result = MainMemory.read(ALU.add(SP, sub));
+                    }
+                    // POP (modifies SP)
+                    case ONER -> {
+                        // i think its post increment so first we read and then we update
+                        result = MainMemory.read(SP);
+                        SP.increment();
+                    }
+                    // interupt
+                    case ZEROR ->
+                        // TODO: interupts
+                        throw new UnsupportedOperationException("Unimplemented case: " + getInstructionFormat());
+                }
+            }
+            case PUSH -> {
+                switch (getInstructionFormat()) {
+                    case TWOR -> {
+                        alu.setOp1(Rd);
+                        alu.setOp2(Rs1);
+                        alu.doOperation(op);
+                        result = alu.getResult();
+                        SP.decrement();
+                    }
+                    case THREER -> {
+                        alu.setOp1(Rs1);
+                        alu.setOp2(Rs2);
+                        alu.doOperation(op);
+                        result = alu.getResult();
+                        SP.decrement();
+                    }
+                    case ONER -> {
+                        alu.setOp1(Rd);
+                        alu.setOp2(Immediate);
+                        alu.doOperation(op);
+                        result = alu.getResult();
+                        SP.decrement();
+                    }
+                    case ZEROR -> {
+                        // TODO: what happens if unused instructions are used
+                    }
+                }
+            }
             case STORE -> {
                 switch (getInstructionFormat()) {
+                    // oner is trivial so extecute + store is combined into execute
                     // TODO: when adding should we use ALU.add2 or call dispatch on alu (or maybe
                     // move add2/add4 to word)
-                    case TWOR ->
-                        MainMemory.write(ALU.add(Rd, Immediate), Rs1);
-                    case THREER -> MainMemory.write(ALU.add(Rd, Rs1), Rs2);
+                    // maybe do addition here and rest in store
+                    case TWOR -> result = ALU.add(Rd, Immediate);
+                    case THREER -> result = ALU.add(Rd, Rs1);
                     case ONER -> MainMemory.write(Rd, Immediate);
-                    // TODO: shoulkld we error if not used
                     case ZEROR -> {
+                        // TODO: what happens if unused instructions are used
                     }
                 }
             }
             case BRANCH -> {
+                // zeror is trivial so we could combine execute and store int execute
+                // but we don't because it means we don't have to switch on instruction format
+                // in store if the all do the same thing
                 switch (getInstructionFormat()) {
-                    case ONER ->
-                        PC.copy(ALU.add(PC, Immediate));
+                    case ONER -> result = ALU.add(PC, Immediate);
                     case THREER -> {
                         alu.setOp1(Rs1);
                         alu.setOp2(Rs2);
-                        if (alu.doBooleanOperation(op)) {
-                            PC.copy(ALU.add(PC, Immediate));
-                        }
+                        result = (alu.doBooleanOperation(op)) ? ALU.add(PC, Immediate) : PC;
                     }
                     case TWOR -> {
                         alu.setOp1(Rs1);
                         alu.setOp2(Rd);
-                        if (alu.doBooleanOperation(op)) {
-                            PC.copy(ALU.add(PC, Immediate));
-                        }
+                        result = (alu.doBooleanOperation(op)) ? ALU.add(PC, Immediate) : PC;
                     }
-                    case ZEROR -> PC.copy(Immediate);
-                    default -> throw new IllegalArgumentException("Unexpected value: " + getInstructionFormat());
+                    case ZEROR -> result = Immediate;
                 }
             }
-            default -> throw new IllegalArgumentException("Unexpected value: " + getInstructionCode());
         }
     }
 
@@ -232,17 +297,45 @@ public class Processor {
         switch (getInstructionCode()) {
             case MATH -> {
                 switch (getInstructionFormat()) {
-                    case THREER, TWOR -> setRegister(Rd, alu.getResult());
+                    case THREER, TWOR -> setRegister(Rd, result);
                     default -> {
                     }
                 }
             }
-            case BRANCH -> throw new UnsupportedOperationException("Unimplemented case: " + getInstructionCode());
+            case BRANCH -> PC.copy(result);
             case CALL -> throw new UnsupportedOperationException("Unimplemented case: " + getInstructionCode());
-            case LOAD -> throw new UnsupportedOperationException("Unimplemented case: " + getInstructionCode());
-            case POP -> throw new UnsupportedOperationException("Unimplemented case: " + getInstructionCode());
-            case PUSH -> throw new UnsupportedOperationException("Unimplemented case: " + getInstructionCode());
-            case STORE -> throw new UnsupportedOperationException("Unimplemented case: " + getInstructionCode());
+            case LOAD -> {
+                switch (getInstructionFormat()) {
+                    case THREER, TWOR, ONER -> setRegister(Rd, result);
+                    // return modifies pc
+                    case ZEROR ->
+                        throw new UnsupportedOperationException("Unimplemented case: " + getInstructionFormat());
+                }
+            }
+            case POP -> {
+                switch (getInstructionFormat()) {
+                    case THREER, TWOR, ONER -> setRegister(Rd, result);
+                    // interupt
+                    case ZEROR ->
+                        throw new UnsupportedOperationException("Unimplemented case: " + getInstructionFormat());
+                }
+            }
+            case PUSH -> {
+                switch (getInstructionFormat()) {
+                    // we already decremented sp in execute
+                    case THREER, TWOR, ONER -> MainMemory.write(SP, result);
+                    default -> {
+                    }
+                }
+            }
+            case STORE -> {
+                switch (getInstructionFormat()) {
+                    case TWOR -> MainMemory.write(result, Rs1);
+                    case THREER -> MainMemory.write(result, Rs2);
+                    default -> {
+                    }
+                }
+            }
         }
 
     }
