@@ -6,8 +6,7 @@ import java.util.function.IntConsumer;
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 import static UnitTests.UnitTests.*;
-import static Utils.Utils.getBigNumber;
-import static Utils.Utils.getZero;
+import static Utils.Utils.*;
 
 import Computer.*;
 import Utils.Utils.Tuple;
@@ -57,7 +56,7 @@ public class ALUTests {
         assertEquals(1234567 * 89, ALU.mul(new Word(-1_234_567), new Word(-89)).getSigned());
 
         // do min_value + 1 b/c more negatives then positives
-        assertEquals(Integer.MAX_VALUE, ALU.mul(new Word(Integer.MIN_VALUE+1), new Word(-1)).getSigned());
+        assertEquals(Integer.MAX_VALUE, ALU.mul(new Word(Integer.MIN_VALUE + 1), new Word(-1)).getSigned());
     }
 
     @Test
