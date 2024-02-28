@@ -3,6 +3,24 @@ package Computer;
 import static Utils.Utils.*;
 
 public class MainMemory {
+    public static final class MemoryReadError extends RuntimeException {
+        public MemoryReadError(int address) {
+            super("invalid memory read at address " + address);
+        }
+    }
+
+    public static final class MemoryWriteError extends RuntimeException {
+        public MemoryWriteError(int address, Word data) {
+            super("invalid memory write at address " + address + " of " + data);
+        }
+    }
+
+    public static final class MemoryLoadError extends RuntimeException {
+        public MemoryLoadError(int address, String data) {
+            super("invalid memory load to address " + address + " of " + data);
+        }
+    }
+
     private static Word MEMORY[] = new Word[] {
             getZero(), getZero(), getZero(), getZero(), getZero(), getZero(), getZero(), getZero(), getZero(),
             getZero(), getZero(), getZero(), getZero(), getZero(), getZero(), getZero(), getZero(), getZero(),
@@ -232,19 +250,33 @@ public class MainMemory {
             getZero(), getZero(), getZero(), getZero(), getZero(), getZero(), getZero(), getZero(), getZero(),
             getZero(), getZero(), getZero(), getZero(), getZero(), getZero(), getZero(), getZero(), };
 
-    // TODO; rnage check on addres
     public static Word read(Word address) {
-        return MEMORY[(int) address.getUnsigned()].clone();
+        var int_address = (int) address.getUnsigned();
+
+        if (int_address < 1024) {
+            return MEMORY[int_address];
+        } else {
+            throw new MemoryReadError(int_address);
+        }
     }
 
-    // TODO; rnage check on addres
     public static void write(Word address, Word value) {
-        MEMORY[(int) address.getUnsigned()].copy(value);
+        var int_address = (int) address.getUnsigned();
+
+        if (int_address < 1024) {
+            MEMORY[int_address].copy(value);
+        } else {
+            throw new MemoryWriteError(int_address, value);
+        }
     }
 
     public static void load(String[] data) {
         for (var i = 0; i < data.length; i++) {
+            if (data[i].length() != 32) {
+                throw new MemoryLoadError(i, data[i]);
+            }
             // We assume bits are encode rtl
+            // see word class for more info
             MEMORY[i].setBit(31, new Bit(data[i].charAt(0) == '1'));
             MEMORY[i].setBit(30, new Bit(data[i].charAt(1) == '1'));
             MEMORY[i].setBit(29, new Bit(data[i].charAt(2) == '1'));
