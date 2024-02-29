@@ -1,8 +1,5 @@
 package UnitTests;
 
-import java.util.function.BiFunction;
-import java.util.function.IntConsumer;
-
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 import static UnitTests.UnitTests.*;
@@ -77,19 +74,6 @@ public class ALUTests {
         // 0 - -7 = 7
         assertEquals(7, ALU.sub(getZero(), new Word(-7)).getSigned());
 
-    }
-
-    public void MatrixDoMath(BiFunction<Integer, Integer, Integer> actualOp, BiFunction<Word, Word, Word> op,
-            String opName, Tuple<Integer, Integer> n, Tuple<Integer, Integer> m) {
-        IntConsumer inner = i -> {
-            var n1 = new Word(i);
-            doInRange(m.fst(), m.snd(), j -> {
-                var n2 = new Word(j);
-                var result = op.apply(n1, n2);
-                assertEquals((int) actualOp.apply(i, j), (int) result.getUnsigned());
-            }, opName + " inner");
-        };
-        doInRange(n.fst(), n.snd(), inner, opName + " outer");
     }
 
     private static final Tuple<Integer, Integer> RANGE_0_TO_10 = new Tuple<Integer, Integer>(0, 10);

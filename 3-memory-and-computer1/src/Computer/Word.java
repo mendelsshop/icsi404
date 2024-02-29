@@ -285,7 +285,9 @@ public class Word {
 	}
 
 	public void copy(Word other) {
-		bits = (Bit[]) Arrays.stream(other.bits).map(b -> new Bit(b.getValue())).toArray();
+		bits = (Bit[]) Arrays.stream(other.bits)
+		.map(Bit::clone)
+		.toArray(Bit[]::new);
 	}
 
 	public void copy2(Word other) {
