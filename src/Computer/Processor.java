@@ -147,6 +147,17 @@ public class Processor {
     // depending on instructins
     private Word result;
 
+    private Word pop() {
+        var result = MainMemory.read(SP);
+        SP.increment();
+        return result;
+    }
+
+    private void push(Word value) {
+        SP.decrement();
+        MainMemory.write(SP, value);
+    }
+
     private void execute() {
 
         var op = getInstructionFormat() != InstructionFormat.ZEROR ? new Bit[] {
@@ -159,14 +170,34 @@ public class Processor {
         switch (getInstructionCode()) {
             case CALL -> {
                 switch (getInstructionFormat()) {
-                    case ONER ->
-                        throw new UnsupportedOperationException("Unimplemented case: " + getInstructionFormat());
-                    case THREER ->
-                        throw new UnsupportedOperationException("Unimplemented case: " + getInstructionFormat());
-                    case TWOR ->
-                        throw new UnsupportedOperationException("Unimplemented case: " + getInstructionFormat());
-                    case ZEROR ->
-                        throw new UnsupportedOperationException("Unimplemented case: " + getInstructionFormat());
+                    case ONER -> {
+                        push(PC);
+                        result = ALU.add(Rd, Immediate);
+                    }
+                    case THREER -> {
+                        alu.setOp1(Rs1);
+                        alu.setOp2(Rs2);
+                        if (alu.doBooleanOperation(op)) {
+                            push(PC);
+                            result = ALU.add(Rd, Immediate);
+                        } else {
+                            result = PC;
+                        }
+                    }
+                    case TWOR -> {
+                        alu.setOp1(Rs1);
+                        alu.setOp2(Rd);
+                        if (alu.doBooleanOperation(op)) {
+                            push(PC);
+                            result = ALU.add(PC, Immediate);
+                        } else {
+                            result = PC;
+                        }
+                    }
+                    case ZEROR -> {
+                        push(PC);
+                        result = Immediate;
+                    }
                 }
             }
             case LOAD -> {
@@ -175,6 +206,7 @@ public class Processor {
                     case THREER -> result = ALU.add(Rs1, Rs2);
                     case ONER -> result = ALU.add(Rd, Immediate);
                     case ZEROR -> {
+                        result = pop();
                         // TODO: when we say Return is pop and set the PC
                         // or any instruction does some sub indtruction do we just do that basic version
                         // of that instruction ie --p
@@ -218,11 +250,11 @@ public class Processor {
                         result = MainMemory.read(ALU.add(SP, sub));
                     }
                     // POP (modifies SP)
-                    case ONER -> {
+                    case ONER ->
                         // i think its post increment so first we read and then we update
-                        result = MainMemory.read(SP);
-                        SP.increment();
-                    }
+                        result = pop();
+
+                    // }
                     // interupt
                     case ZEROR ->
                         // TODO: interupts
@@ -302,14 +334,12 @@ public class Processor {
                     }
                 }
             }
-            case BRANCH -> PC.copy(result);
-            case CALL -> throw new UnsupportedOperationException("Unimplemented case: " + getInstructionCode());
+            case BRANCH, CALL -> PC.copy(result);
             case LOAD -> {
                 switch (getInstructionFormat()) {
                     case THREER, TWOR, ONER -> setRegister(Rd, result);
                     // return modifies pc
-                    case ZEROR ->
-                        throw new UnsupportedOperationException("Unimplemented case: " + getInstructionFormat());
+                    case ZEROR -> PC.copy(result);
                 }
             }
             case POP -> {
