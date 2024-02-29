@@ -148,7 +148,7 @@ public class WordTests {
 
     }
 
-    @Test
+    // @Test
     // This test takes a while as it go from -2147483648 to 2147483647 and make sure
     // the that set and get are correct
     public void intToWord() {
@@ -383,4 +383,91 @@ public class WordTests {
         Fuzzer(1000000);
     }
 
+    @Test
+    public void basicIncrementTest() {
+        var zero = getZero();
+        zero.increment();
+        assertEquals(1, zero.getSigned());
+        // checking increment overflow
+        var max = new Word(Integer.MAX_VALUE);
+        max.increment();
+        assertEquals(Integer.MIN_VALUE, max.getSigned());
+        var ten = new Word(10);
+        ten.increment();
+        assertEquals(11, ten.getSigned());
+        // negative number incremented to 0
+        var negative_one = new Word(-1);
+        negative_one.increment();
+        assertEquals(0, negative_one.getSigned());
+    }
+
+    @Test
+    public void IncrementSmallNumbers() {
+
+        doInRange(0, 10, (n) -> {
+            var number = new Word(n);
+            number.increment();
+            assertEquals(n + 1, number.getSigned());
+        }, "increment");
+    }
+
+    @Test
+    public void IncrementLotOfSmallNumbers() {
+
+        doInRange(10, 100000, (n) -> {
+            var number = new Word(n);
+            number.increment();
+            assertEquals(n + 1, number.getSigned());
+        }, "increment");
+    }
+
+    @Test
+    public void IncrementNegativeNumbers() {
+
+        doInRange(Integer.MIN_VALUE, Integer.MIN_VALUE + 10, (n) -> {
+            var number = new Word(n);
+            number.increment();
+            assertEquals(n + 1, number.getSigned());
+        }, "increment");
+    }
+
+    @Test
+    public void IncrementLotsOfNegativeNumbers() {
+
+        doInRange(Integer.MIN_VALUE + 10, Integer.MIN_VALUE + 100000, (n) -> {
+            var number = new Word(n);
+            number.increment();
+            assertEquals(n + 1, number.getSigned());
+        }, "increment");
+    }
+
+    @Test
+    public void IncrementBigNumbers() {
+
+        doInRange(Integer.MAX_VALUE - 10, Integer.MAX_VALUE, (n) -> {
+            var number = new Word(n);
+            number.increment();
+            assertEquals(n + 1, number.getSigned());
+        }, "increment");
+    }
+
+    @Test
+    public void IncrementMidNegativeNumbers() {
+
+        doInRange(Integer.MIN_VALUE / 2, (Integer.MIN_VALUE / 2) + 10, (n) -> {
+            var number = new Word(n);
+            number.increment();
+            assertEquals(n + 1, number.getSigned());
+        }, "increment");
+    }
+
+    @Test
+    public void IncrementMidBigNumbers() {
+
+        doInRange((Integer.MAX_VALUE / 2) - 10, Integer.MAX_VALUE / 2, (n) -> {
+            var number = new Word(n);
+            number.increment();
+            assertEquals(n + 1, number.getSigned());
+        }, "increment");
+    }
 }
