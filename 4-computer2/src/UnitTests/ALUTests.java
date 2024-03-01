@@ -1,8 +1,5 @@
 package UnitTests;
 
-import java.util.function.BiFunction;
-import java.util.function.IntConsumer;
-
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 import static UnitTests.UnitTests.*;
@@ -57,7 +54,7 @@ public class ALUTests {
         assertEquals(1234567 * 89, ALU.mul(new Word(-1_234_567), new Word(-89)).getSigned());
 
         // do min_value + 1 b/c more negatives then positives
-        assertEquals(Integer.MAX_VALUE, ALU.mul(new Word(Integer.MIN_VALUE+1), new Word(-1)).getSigned());
+        assertEquals(Integer.MAX_VALUE, ALU.mul(new Word(Integer.MIN_VALUE + 1), new Word(-1)).getSigned());
     }
 
     @Test
@@ -79,137 +76,108 @@ public class ALUTests {
 
     }
 
-    public void MatrixDoMath(BiFunction<Integer, Integer, Integer> actualOp, BiFunction<Word, Word, Word> op,
-            String opName, Tuple<Integer, Integer> n,
-            Tuple<Integer, Integer> m) {
-        IntConsumer inner = i -> {
-            var n1 = new Word(i);
-            doInRange(m.fst(), m.snd(), j -> {
-                var n2 = new Word(j);
-                var result = op.apply(n1, n2);
-                assertEquals((int) actualOp.apply(i, j), (int) result.getUnsigned());
-            }, opName + " inner");
-        };
-        doInRange(n.fst(), n.snd(), inner, opName + " outer");
-    }
+    private static final Tuple<Integer, Integer> RANGE_0_TO_10 = new Tuple<Integer, Integer>(0, 10);
+    private static final Tuple<Integer, Integer> RANGE_NEGATIVE_10_TO_0 = new Tuple<Integer, Integer>(-10, 0);
+    private static final Tuple<Integer, Integer> RANGE_BIG_NUMBERS = new Tuple<Integer, Integer>(Integer.MAX_VALUE - 10,
+            Integer.MAX_VALUE);
+    private static final Tuple<Integer, Integer> RANGE_NEGATIVE_BIG_NUMBERS = new Tuple<Integer, Integer>(
+            Integer.MIN_VALUE, Integer.MIN_VALUE + 10);
+    private static final Tuple<Integer, Integer> RANGE_MID_SIZE_NUMBERS = new Tuple<Integer, Integer>(
+            (Integer.MAX_VALUE / 2) - 10, (Integer.MAX_VALUE / 2));
+    private static final Tuple<Integer, Integer> RANGE_NEGATIVE_MID_SIZE_NUMBERS = new Tuple<Integer, Integer>(
+            (Integer.MIN_VALUE / 2), (Integer.MIN_VALUE / 2) + 10);
 
     @Test
     public void add0to10() {
-        MatrixDoMath((a, b) -> a + b, ALU::add, "add", new Tuple<Integer, Integer>(0, 10),
-                new Tuple<Integer, Integer>(0, 10));
+        MatrixDoMath((a, b) -> a + b, ALU::add, "add", RANGE_0_TO_10, RANGE_0_TO_10);
     }
 
     @Test
     public void addnegative10to0() {
-        MatrixDoMath((a, b) -> a + b, ALU::add, "add", new Tuple<Integer, Integer>(-10, 0),
-                new Tuple<Integer, Integer>(-10, 0));
+        MatrixDoMath((a, b) -> a + b, ALU::add, "add", RANGE_NEGATIVE_10_TO_0, RANGE_NEGATIVE_10_TO_0);
     }
 
     @Test
     public void mul0to10() {
-        MatrixDoMath((a, b) -> a * b, ALU::mul, "mul", new Tuple<Integer, Integer>(0, 10),
-                new Tuple<Integer, Integer>(0, 10));
+        MatrixDoMath((a, b) -> a * b, ALU::mul, "mul", RANGE_0_TO_10, RANGE_0_TO_10);
     }
 
     @Test
     public void mulnegative10to0() {
-        MatrixDoMath((a, b) -> a * b, ALU::mul, "mul", new Tuple<Integer, Integer>(-10, 0),
-                new Tuple<Integer, Integer>(-10, 0));
+        MatrixDoMath((a, b) -> a * b, ALU::mul, "mul", RANGE_NEGATIVE_10_TO_0, RANGE_NEGATIVE_10_TO_0);
     }
 
     @Test
     public void sub0to10() {
-        MatrixDoMath((a, b) -> a - b, ALU::sub, "sub", new Tuple<Integer, Integer>(0, 10),
-                new Tuple<Integer, Integer>(0, 10));
+        MatrixDoMath((a, b) -> a - b, ALU::sub, "sub", RANGE_0_TO_10, RANGE_0_TO_10);
     }
 
     @Test
     public void subnegative10to0() {
-        MatrixDoMath((a, b) -> a - b, ALU::sub, "sub", new Tuple<Integer, Integer>(-10, 0),
-                new Tuple<Integer, Integer>(-10, 0));
+        MatrixDoMath((a, b) -> a - b, ALU::sub, "sub", RANGE_NEGATIVE_10_TO_0, RANGE_NEGATIVE_10_TO_0);
     }
 
     @Test
-    public void addbignumbertonegativebignumer() {
-        MatrixDoMath((a, b) -> a + b, ALU::add, "add",
-                new Tuple<Integer, Integer>(Integer.MAX_VALUE - 10, Integer.MAX_VALUE),
-                new Tuple<Integer, Integer>(Integer.MAX_VALUE - 10, Integer.MAX_VALUE));
+    public void addbignumbertbignubmer() {
+        MatrixDoMath((a, b) -> a + b, ALU::add, "add", RANGE_BIG_NUMBERS, RANGE_BIG_NUMBERS);
     }
 
     @Test
-    public void addnegativebignumbertobignumber() {
-        MatrixDoMath((a, b) -> a + b, ALU::add, "add",
-                new Tuple<Integer, Integer>(Integer.MIN_VALUE, Integer.MIN_VALUE + 10),
-                new Tuple<Integer, Integer>(Integer.MIN_VALUE, Integer.MIN_VALUE + 10));
+    public void addnegativebignumbertonegativebignumber() {
+        MatrixDoMath((a, b) -> a + b, ALU::add, "add", RANGE_NEGATIVE_BIG_NUMBERS, RANGE_NEGATIVE_BIG_NUMBERS);
     }
 
     @Test
     public void mulbignumbertobignumber() {
-        MatrixDoMath((a, b) -> a * b, ALU::mul, "mul",
-                new Tuple<Integer, Integer>(Integer.MAX_VALUE, Integer.MAX_VALUE + 10),
-                new Tuple<Integer, Integer>(Integer.MAX_VALUE, Integer.MAX_VALUE + 10));
+        MatrixDoMath((a, b) -> a * b, ALU::mul, "mul", RANGE_BIG_NUMBERS, RANGE_BIG_NUMBERS);
     }
 
     @Test
     public void mulnegativebignumbertonegativebignumber() {
-        MatrixDoMath((a, b) -> a * b, ALU::mul, "mul",
-                new Tuple<Integer, Integer>(Integer.MIN_VALUE - 10, Integer.MIN_VALUE),
-                new Tuple<Integer, Integer>(Integer.MIN_VALUE - 10, Integer.MIN_VALUE));
+        MatrixDoMath((a, b) -> a * b, ALU::mul, "mul", RANGE_NEGATIVE_BIG_NUMBERS, RANGE_NEGATIVE_BIG_NUMBERS);
     }
 
     @Test
     public void subbignumbertobignumber() {
-        MatrixDoMath((a, b) -> a - b, ALU::sub, "sub",
-                new Tuple<Integer, Integer>(Integer.MAX_VALUE, Integer.MAX_VALUE + 10),
-                new Tuple<Integer, Integer>(Integer.MAX_VALUE, Integer.MAX_VALUE + 10));
+        MatrixDoMath((a, b) -> a - b, ALU::sub, "sub", RANGE_BIG_NUMBERS, RANGE_BIG_NUMBERS);
     }
 
     @Test
     public void subnegativebignumbertonegativebignumber() {
-        MatrixDoMath((a, b) -> a - b, ALU::sub, "sub",
-                new Tuple<Integer, Integer>(Integer.MIN_VALUE - 10, Integer.MIN_VALUE),
-                new Tuple<Integer, Integer>(Integer.MIN_VALUE - 10, Integer.MIN_VALUE));
+        MatrixDoMath((a, b) -> a - b, ALU::sub, "sub", RANGE_NEGATIVE_BIG_NUMBERS, RANGE_NEGATIVE_BIG_NUMBERS);
     }
 
     @Test
     public void addmiddlenumbertomiddlenumber() {
-        MatrixDoMath((a, b) -> a + b, ALU::add, "add",
-                new Tuple<Integer, Integer>((Integer.MAX_VALUE / 2) - 10, (Integer.MAX_VALUE / 2)),
-                new Tuple<Integer, Integer>((Integer.MAX_VALUE / 2) - 10, (Integer.MAX_VALUE / 2)));
+        MatrixDoMath((a, b) -> a + b, ALU::add, "add", RANGE_MID_SIZE_NUMBERS, RANGE_MID_SIZE_NUMBERS);
     }
 
     @Test
     public void addnegativemiddlenumbertonegativemiddlenumber() {
-        MatrixDoMath((a, b) -> a + b, ALU::add, "add",
-                new Tuple<Integer, Integer>((Integer.MIN_VALUE / 2), (Integer.MIN_VALUE / 2) + 10),
-                new Tuple<Integer, Integer>((Integer.MIN_VALUE / 2), (Integer.MIN_VALUE / 2) + 10));
+        MatrixDoMath((a, b) -> a + b, ALU::add, "add", RANGE_NEGATIVE_MID_SIZE_NUMBERS,
+                RANGE_NEGATIVE_MID_SIZE_NUMBERS);
     }
 
     @Test
     public void mulmiddlenumbertomiddlenumber() {
-        MatrixDoMath((a, b) -> a * b, ALU::mul, "mul", new Tuple<Integer, Integer>(0,
-                10),
-                new Tuple<Integer, Integer>(0, 10));
+        MatrixDoMath((a, b) -> a * b, ALU::mul, "mul", RANGE_MID_SIZE_NUMBERS, RANGE_MID_SIZE_NUMBERS);
     }
 
     @Test
     public void mulnegativemiddlenumbertonegativemiddlenumber() {
-        MatrixDoMath((a, b) -> a * b, ALU::mul, "mul", new Tuple<Integer, Integer>(-10, 0),
-                new Tuple<Integer, Integer>(-10, 0));
+        MatrixDoMath((a, b) -> a * b, ALU::mul, "mul", RANGE_NEGATIVE_MID_SIZE_NUMBERS,
+                RANGE_NEGATIVE_MID_SIZE_NUMBERS);
     }
 
     @Test
     public void submiddlenumbertomiddlenumber() {
-        MatrixDoMath((a, b) -> a - b, ALU::sub, "sub", new Tuple<Integer, Integer>(0,
-                10),
-                new Tuple<Integer, Integer>(0, 10));
+        MatrixDoMath((a, b) -> a - b, ALU::sub, "sub", RANGE_MID_SIZE_NUMBERS, RANGE_MID_SIZE_NUMBERS);
     }
 
     @Test
     public void subnegativemiddlenumbertonegativemiddlenumber() {
-        MatrixDoMath((a, b) -> a - b, ALU::sub, "sub",
-                new Tuple<Integer, Integer>((Integer.MIN_VALUE / 2) - 10, (Integer.MIN_VALUE / 2)),
-                new Tuple<Integer, Integer>((Integer.MIN_VALUE / 2) - 10, (Integer.MIN_VALUE / 2)));
+        MatrixDoMath((a, b) -> a - b, ALU::sub, "sub", RANGE_NEGATIVE_MID_SIZE_NUMBERS,
+                RANGE_NEGATIVE_MID_SIZE_NUMBERS);
     }
 
     @Test
