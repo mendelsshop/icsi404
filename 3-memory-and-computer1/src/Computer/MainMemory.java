@@ -21,6 +21,8 @@ public class MainMemory {
         }
     }
 
+    // we pre intitialze the memory so we dont have to null checks when wrting or
+    // loading
     private static Word MEMORY[] = new Word[] {
             getZero(), getZero(), getZero(), getZero(), getZero(), getZero(), getZero(), getZero(), getZero(),
             getZero(), getZero(), getZero(), getZero(), getZero(), getZero(), getZero(), getZero(), getZero(),
@@ -276,7 +278,10 @@ public class MainMemory {
                 throw new MemoryLoadError(i, data[i]);
             }
             // We assume bits are encode rtl
+            // so the left most input bit corresponds to the right most output bit
             // see word class for more info
+            // for each bit of input we set the bit of the word in memory to be true if the
+            // input is 1 otherwise false
             MEMORY[i].setBit(31, new Bit(data[i].charAt(0) == '1'));
             MEMORY[i].setBit(30, new Bit(data[i].charAt(1) == '1'));
             MEMORY[i].setBit(29, new Bit(data[i].charAt(2) == '1'));
