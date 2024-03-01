@@ -174,6 +174,7 @@ public class Word {
 		return res;
 	}
 
+	// increment is just a 32 ripple half adder
 	public void increment() {
 		Stream.iterate(0, i -> i < 32, i -> i + 1).reduce((new Bit(true)), (t, i) -> {
 			// order matters if you get carry after setting bit you are doing it wronmg (the
@@ -299,7 +300,9 @@ public class Word {
 	}
 
 	public void copy(Word other) {
-		bits = (Bit[]) Arrays.stream(other.bits).map(b -> new Bit(b.getValue())).toArray();
+		bits = (Bit[]) Arrays.stream(other.bits)
+				.map(Bit::clone)
+				.toArray(Bit[]::new);
 	}
 
 	public void copy2(Word other) {
