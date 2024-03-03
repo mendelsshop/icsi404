@@ -5,8 +5,8 @@ import static Utils.Utils.*;
 import java.util.function.Function;
 
 public class Processor {
-    private Word PC = new Word(0);
-    private Word SP = new Word(1024);
+    private Word PC = new Word(new Bit[32]);
+    private Word SP = new Word(new Bit[32]);
     private Word currentInstruction = new Word(new Bit[32]);
     private Bit halted = new Bit(false);
 
@@ -42,29 +42,22 @@ public class Processor {
     }
 
     private void decode() {
-        // get if (0r/1r/2r/3r)
         IF = getNBits(2, 0);
-        // get instruction type
         IC = getNBits(3, 2);
-        // decode based if
         switch (getInstructionFormat()) {
-            // we sign extend immediate because it could be negative and when we shift to
-            // obtain immediate we lose the sign bit being at the end
-            // for immedieats there is no reason to mask as they are the last part of word
             case ZEROR -> {
-                // shift right by 5 to get the 27 bit immediate value
-                Immediate = currentInstruction.rightShift(5).signExtend(26);
+                Immediate = currentInstruction.rightShift(5);
             }
             case ONER -> {
                 Rd = getNBits(5, 5);
                 Function = getNBits(4, 10);
-                Immediate = currentInstruction.rightShift(14).signExtend(17);
+                Immediate = currentInstruction.rightShift(14);
             }
             case TWOR -> {
                 Rd = getNBits(5, 5);
                 Function = getNBits(4, 10);
                 Rs1 = getNBits(5, 14);
-                Immediate = currentInstruction.rightShift(19).signExtend(12);
+                Immediate = currentInstruction.rightShift(19);
             }
             case THREER -> {
 
@@ -72,54 +65,19 @@ public class Processor {
                 Function = getNBits(4, 10);
                 Rs2 = getNBits(5, 14);
                 Rs1 = getNBits(5, 19);
-                Immediate = currentInstruction.rightShift(24).signExtend(7);
+                Immediate = currentInstruction.rightShift(24);
             }
+            default -> throw new IllegalArgumentException("Unexpected value: " + getInstructionFormat());
         }
     }
 
-    private int registerAddressDecoder(Word word) {
-        var firstBit = word.getBit(0);
-        var secondBit = word.getBit(1);
-        var thirdBit = word.getBit(2);
-        var fourthBit = word.getBit(3);
-        var fifthBit = word.getBit(4);
-
-        // eclipse/jdt.ls formatting comment
-        // so it doesn' fomrat this code
-        // @formatter:off
-                return fifthBit.and(fourthBit).and(thirdBit).and(secondBit).and(firstBit).getValue() ? 31
-                        : fifthBit.and(fourthBit).and(thirdBit).and(secondBit).getValue() ? 30
-                        : fifthBit.and(fourthBit).and(thirdBit).and(firstBit).getValue() ? 29
-                        : fifthBit.and(fourthBit).and(thirdBit).getValue() ? 28
-                        : fifthBit.and(fourthBit).and(secondBit).and(firstBit).getValue() ? 27
-                        : fifthBit.and(fourthBit).and(secondBit).getValue() ? 26
-                        : fifthBit.and(fourthBit).and(firstBit).getValue() ? 25
-                        : fifthBit.and(fourthBit).getValue() ? 24
-                        : fifthBit.and(thirdBit).and(secondBit).and(firstBit).getValue()? 23
-                        : fifthBit.and(thirdBit).and(secondBit).getValue()? 22
-                        : fifthBit.and(thirdBit).and(firstBit).getValue()? 21
-                        : fifthBit.and(thirdBit).getValue()? 20
-                        : fifthBit.and(secondBit).and(firstBit).getValue()? 19
-                        : fifthBit.and(secondBit).getValue()? 18
-                        : fifthBit.and(firstBit).getValue()? 17
-                        : fifthBit.getValue()? 16
-                        : fourthBit.and(thirdBit).and(secondBit).and(firstBit).getValue()? 15
-                        : fourthBit.and(thirdBit).and(secondBit).getValue()? 14
-                        : fourthBit.and(thirdBit).and(firstBit).getValue()? 13
-                        : fourthBit.and(thirdBit).getValue()? 12
-                        : fourthBit.and(secondBit).and(firstBit).getValue()? 11
-                        : fourthBit.and(secondBit).getValue()? 10
-                        : fourthBit.and(firstBit).getValue()? 9
-                        : fourthBit.getValue()? 8
-                        : thirdBit.and(secondBit).and(firstBit).getValue()? 7
-                        : thirdBit.and(secondBit).getValue()? 6
-                        : thirdBit.and(firstBit).getValue()? 5
-                        : thirdBit.getValue()? 4
-                        : secondBit.and(firstBit).getValue()? 3
-                        : secondBit.getValue()? 2
-                        : firstBit.getValue()? 1
-                        : 0;
-                // @formatter:on
+    private int nBitUnsignedDecoder(int n, Word word) {
+        checkBitRange1(n);
+        int res = 0;
+        for (int i = 0; i < n; i++) {
+            res += word.getBit(i).getValue() ? (int) Math.pow(2, i) : 0;
+        }
+        return res;
     }
 
     private Word getNBits(int size, int shift) {
@@ -127,20 +85,14 @@ public class Processor {
     }
 
     private Word getRegister(Word word) {
-        return getRegister(registerAddressDecoder(word));
+        return getRegister(nBitUnsignedDecoder(5, word));
     }
 
     private void setRegister(Word word, Word newWord) {
-        setRegister(registerAddressDecoder(word), newWord);
+        setRegister(nBitUnsignedDecoder(5, word), newWord);
     }
 
     public static Word getNBits(Word word, int size, int shift) {
-        // creates a mask that only preseveres (size) amount of bits after shift right
-        // by (shift)
-        // we do this instead mutation current instruction which would be shift mask
-        // shift mask shift mask
-        // we dont mutate so each time we have to shift and mask relative ot start of
-        // word
         Function<Integer, Bit> getMaskBit = i -> new Bit(i >= shift && i < shift + size);
         Word mask = new Word(new Bit[] {
                 getMaskBit.apply(0), getMaskBit.apply(1), getMaskBit.apply(2), getMaskBit.apply(3), getMaskBit.apply(4),
@@ -167,30 +119,24 @@ public class Processor {
     }
 
     private InstructionCode getInstructionCode() {
-        // this swithc statements is like a bunch of and on the first three bits but
-        // using siwtch
-        return switch (new Triple<Boolean, Boolean, Boolean>(IC.getBit(0).getValue(), IC.getBit(1).getValue(),
-                IC.getBit(2).getValue())) {
-            // requires preview feautres (java 21) or java 22
-            // fst & sbd & thrd
-            case Triple(Boolean fst, Boolean snd, Boolean thrd) when fst && snd && thrd -> throw new RuntimeException();
-            case Triple(Boolean fst, Boolean snd, Boolean thrd) when snd && thrd -> InstructionCode.POP;
-            case Triple(Boolean fst, Boolean snd, Boolean thrd) when fst && thrd -> InstructionCode.STORE;
-            case Triple(Boolean fst, Boolean snd, Boolean thrd) when snd && fst -> InstructionCode.PUSH;
-            case Triple(Boolean fst, Boolean snd, Boolean thrd) when thrd -> InstructionCode.LOAD;
-            case Triple(Boolean fst, Boolean snd, Boolean thrd) when snd -> InstructionCode.CALL;
-            case Triple(Boolean fst, Boolean snd, Boolean thrd) when fst -> InstructionCode.BRANCH;
+        return switch (new Triple<>(IC.getBit(1).getValue(), IC.getBit(1).getValue(), IC.getBit(1).getValue())) {
+            case Triple(var fst, var snd, var thrd) when fst && snd && thrd -> throw new RuntimeException();
+            case Triple(var fst, var snd, var thrd) when snd && thrd -> InstructionCode.POP;
+            case Triple(var fst, var snd, var thrd) when fst && thrd -> InstructionCode.STORE;
+            case Triple(var fst, var snd, var thrd) when snd && fst -> InstructionCode.PUSH;
+            case Triple(var fst, var snd, var thrd) when thrd -> InstructionCode.LOAD;
+            case Triple(var fst, var snd, var thrd) when snd -> InstructionCode.CALL;
+            case Triple(var fst, var snd, var thrd) when fst -> InstructionCode.BRANCH;
             default -> InstructionCode.MATH;
         };
     }
 
     private InstructionFormat getInstructionFormat() {
-        // same as getInstructionCode, but for 2 bits
-        return switch (new Tuple<Boolean, Boolean>(IF.getBit(0).getValue(), IF.getBit(1).getValue())) {
-            case Tuple(Boolean fst, Boolean snd) when fst && snd -> InstructionFormat.TWOR;
-            case Tuple(Boolean fst, Boolean snd) when fst -> InstructionFormat.ONER;
-            case Tuple(Boolean fst, Boolean snd) when snd -> InstructionFormat.THREER;
-            case Tuple(Boolean fst, Boolean snd) -> InstructionFormat.ZEROR;
+        return switch (new Tuple<>(IF.getBit(0).getValue(), IF.getBit(1).getValue())) {
+            case Tuple(var fst, var snd) when fst && snd -> InstructionFormat.TWOR;
+            case Tuple(var fst, var snd) when fst -> InstructionFormat.ONER;
+            case Tuple(var fst, var snd) when snd -> InstructionFormat.THREER;
+            case Tuple(var fst, var snd) -> InstructionFormat.ZEROR;
             default -> throw new RuntimeException();
         };
     }
@@ -226,22 +172,22 @@ public class Processor {
                 switch (getInstructionFormat()) {
                     case ONER -> {
                         push(PC);
-                        result = ALU.add(getRegister(Rd), Immediate);
+                        result = ALU.add(Rd, Immediate);
                     }
                     case THREER -> {
-                        alu.setOp1(getRegister(Rs1));
-                        alu.setOp2(getRegister(Rs2));
-                        if (alu.doBooleanOperation(op).getValue()) {
+                        alu.setOp1(Rs1);
+                        alu.setOp2(Rs2);
+                        if (alu.doBooleanOperation(op)) {
                             push(PC);
-                            result = ALU.add(getRegister(Rd), Immediate);
+                            result = ALU.add(Rd, Immediate);
                         } else {
                             result = PC;
                         }
                     }
                     case TWOR -> {
-                        alu.setOp1(getRegister(Rs1));
-                        alu.setOp2(getRegister(Rd));
-                        if (alu.doBooleanOperation(op).getValue()) {
+                        alu.setOp1(Rs1);
+                        alu.setOp2(Rd);
+                        if (alu.doBooleanOperation(op)) {
                             push(PC);
                             result = ALU.add(PC, Immediate);
                         } else {
@@ -250,16 +196,15 @@ public class Processor {
                     }
                     case ZEROR -> {
                         push(PC);
-                        // System.out.println("calling to PC = "+ Immediate.getSigned());
                         result = Immediate;
                     }
                 }
             }
             case LOAD -> {
                 switch (getInstructionFormat()) {
-                    case TWOR -> result = MainMemory.read(ALU.add(getRegister(Rs1), Immediate));
-                    case THREER -> result = MainMemory.read(ALU.add(getRegister(Rs1), getRegister(Rs2)));
-                    case ONER -> result = MainMemory.read(ALU.add(getRegister(Rd), Immediate));
+                    case TWOR -> result = ALU.add(Rs1, Immediate);
+                    case THREER -> result = ALU.add(Rs1, Rs2);
+                    case ONER -> result = ALU.add(Rd, Immediate);
                     case ZEROR -> {
                         result = pop();
                         // TODO: when we say Return is pop and set the PC
@@ -289,29 +234,20 @@ public class Processor {
                         alu.setOp2(getRegister(Rs1));
                         alu.doOperation(op);
                         result = alu.getResult();
-                        // System.out.println(result.getSigned());
                     }
                 }
             }
-            // TODO: should we detect overflow
             case POP -> {
-                // although the SIA32 specfies that we for 2r/3r we do the math and the subtract
-                // from sp,
-                // but in class we said that since stack grows up that peeking should be bigger
-                // than sp to peek
-                // we use
                 switch (getInstructionFormat()) {
                     // PEEK (does not modify sp)
                     case TWOR -> {
-                        var spRelativejump = ALU.add(getRegister(Rs1), Immediate);
-                        Word address = ALU.add(SP, spRelativejump);
-                        // System.out.println("peeking "+address.getSigned());
-                        result = MainMemory.read(address);
+                        var sub = ALU.add(Rs1, Immediate);
+                        result = MainMemory.read(ALU.add(SP, sub));
                     }
                     // PEEK (does not modify sp)
                     case THREER -> {
-                        var spRelativejump = ALU.add(getRegister(Rs1), getRegister(Rs2));
-                        result = MainMemory.read(ALU.add(SP, spRelativejump));
+                        var sub = ALU.add(Rs1, Rs2);
+                        result = MainMemory.read(ALU.add(SP, sub));
                     }
                     // POP (modifies SP)
                     case ONER ->
@@ -328,22 +264,21 @@ public class Processor {
             case PUSH -> {
                 switch (getInstructionFormat()) {
                     case TWOR -> {
-                        alu.setOp1(getRegister(Rd));
-                        alu.setOp2(getRegister(Rs1));
+                        alu.setOp1(Rd);
+                        alu.setOp2(Rs1);
                         alu.doOperation(op);
-                        // System.out.println(alu.getResult());
                         result = alu.getResult();
                         SP.decrement();
                     }
                     case THREER -> {
-                        alu.setOp1(getRegister(Rs1));
-                        alu.setOp2(getRegister(Rs2));
+                        alu.setOp1(Rs1);
+                        alu.setOp2(Rs2);
                         alu.doOperation(op);
                         result = alu.getResult();
                         SP.decrement();
                     }
                     case ONER -> {
-                        alu.setOp1(getRegister(Rd));
+                        alu.setOp1(Rd);
                         alu.setOp2(Immediate);
                         alu.doOperation(op);
                         result = alu.getResult();
@@ -360,9 +295,9 @@ public class Processor {
                     // TODO: when adding should we use ALU.add2 or call dispatch on alu (or maybe
                     // move add2/add4 to word)
                     // maybe do addition here and rest in store
-                    case TWOR -> result = ALU.add(getRegister(Rd), Immediate);
-                    case THREER -> result = ALU.add(getRegister(Rd), getRegister(Rs1));
-                    case ONER -> MainMemory.write(getRegister(Rd), Immediate);
+                    case TWOR -> result = ALU.add(Rd, Immediate);
+                    case THREER -> result = ALU.add(Rd, Rs1);
+                    case ONER -> MainMemory.write(Rd, Immediate);
                     case ZEROR -> {
                         // TODO: what happens if unused instructions are used
                     }
@@ -375,14 +310,14 @@ public class Processor {
                 switch (getInstructionFormat()) {
                     case ONER -> result = ALU.add(PC, Immediate);
                     case THREER -> {
-                        alu.setOp1(getRegister(Rs1));
-                        alu.setOp2(getRegister(Rs2));
-                        result = (alu.doBooleanOperation(op).getValue()) ? ALU.add(PC, Immediate) : PC;
+                        alu.setOp1(Rs1);
+                        alu.setOp2(Rs2);
+                        result = (alu.doBooleanOperation(op)) ? ALU.add(PC, Immediate) : PC;
                     }
                     case TWOR -> {
-                        alu.setOp1(getRegister(Rs1));
-                        alu.setOp2(getRegister(Rd));
-                        result = (alu.doBooleanOperation(op).getValue()) ? ALU.add(PC, Immediate) : PC;
+                        alu.setOp1(Rs1);
+                        alu.setOp2(Rd);
+                        result = (alu.doBooleanOperation(op)) ? ALU.add(PC, Immediate) : PC;
                     }
                     case ZEROR -> result = Immediate;
                 }
@@ -425,8 +360,8 @@ public class Processor {
             }
             case STORE -> {
                 switch (getInstructionFormat()) {
-                    case TWOR -> MainMemory.write(result, getRegister(Rs1));
-                    case THREER -> MainMemory.write(result, getRegister(Rs2));
+                    case TWOR -> MainMemory.write(result, Rs1);
+                    case THREER -> MainMemory.write(result, Rs2);
                     default -> {
                     }
                 }

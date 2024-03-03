@@ -244,7 +244,7 @@ public class Word {
 		var result = clone();
 		var bit = getBit(n);
 		for (; n < 32; n++) {
-			result.setBit(n, bit);
+			setBit(n, bit);
 		}
 		return result;
 	}

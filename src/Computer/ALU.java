@@ -14,10 +14,10 @@ public class ALU {
 
     private Operation getOp(Bit[] op) {
         int res = 0;
-        res += op[0].getValue() ? (int) Math.pow(2, 3) : 0;
-        res += op[1].getValue() ? (int) Math.pow(2, 2) : 0;
-        res += op[2].getValue() ? (int) Math.pow(2, 1) : 0;
-        res += op[3].getValue() ? (int) Math.pow(2, 0) : 0;
+        res += op[0].getValue() ? (int) Math.pow(2, 0) : 0;
+        res += op[1].getValue() ? (int) Math.pow(2, 1) : 0;
+        res += op[2].getValue() ? (int) Math.pow(2, 2) : 0;
+        res += op[3].getValue() ? (int) Math.pow(2, 3) : 0;
         return switch (res) {
             case 0 -> Operation.EQ;
             case 1 -> Operation.NEQ;
@@ -86,7 +86,7 @@ public class ALU {
             case ADD ->
                 result = add(op1, op2);
             case SUB -> {
-                result = sub(op1, op2);
+                result = add(op1, op2);
             }
             case MUL ->
                 result = mul(op1, op2);
@@ -94,60 +94,25 @@ public class ALU {
         }
     }
 
-    // TODO: do I have to use for equality ie op1 - op2 = 0
-    // also can I use normal or for short circuitng
-    public static Bit notEquals(Word op1, Word op2) {
-        var result = sub(op1, op2);
-        return result.getBit(0)
-                .or(result.getBit(1))
-                .or(result.getBit(2))
-                .or(result.getBit(3))
-                .or(result.getBit(4))
-                .or(result.getBit(5))
-                .or(result.getBit(6))
-                .or(result.getBit(7))
-                .or(result.getBit(8))
-                .or(result.getBit(9))
-                .or(result.getBit(10))
-                .or(result.getBit(11))
-                .or(result.getBit(12))
-                .or(result.getBit(13))
-                .or(result.getBit(14))
-                .or(result.getBit(15))
-                .or(result.getBit(16))
-                .or(result.getBit(17))
-                .or(result.getBit(18))
-                .or(result.getBit(19))
-                .or(result.getBit(20))
-                .or(result.getBit(21))
-                .or(result.getBit(22))
-                .or(result.getBit(23))
-                .or(result.getBit(24))
-                .or(result.getBit(25))
-                .or(result.getBit(26))
-                .or(result.getBit(27))
-                .or(result.getBit(28))
-                .or(result.getBit(29))
-                .or(result.getBit(30))
-                .or(result.getBit(31));
-    }
-
-    public Bit doBooleanOperation(Bit[] operation) {
+    public boolean doBooleanOperation(Bit[] operation) {
         // TODO: should bops be in alu?
         return switch (getOp(operation)) {
             case EQ ->
-                notEquals(op1, op2).not();
+                op1.equals(op2);
             case NEQ ->
-                notEquals(op1, op2);
+                !op1.equals(op2);
             case LT ->
-                sub(op1, op2).getBit(31);
+                sub(op1, op2).getBit(31).getValue();
             case GE ->
-                sub(op1, op2).getBit(31).not();
-            case GT ->
-                sub(op2, op1).getBit(31);
-            case LE ->
-                sub(op2, op1).getBit(31).not();
-
+                !sub(op1, op2).getBit(31).getValue();
+            case GT -> {
+                Word dif = sub(op1, op2);
+                yield !(dif.getBit(31).getValue() || dif.equals(getZero()));
+            }
+            case LE -> {
+                Word dif = sub(op1, op2);
+                yield dif.getBit(31).getValue() || dif.equals(getZero());
+            }
             default -> throw new IllegalArgumentException("Unexpected value: " + getOp(operation));
         };
     }
