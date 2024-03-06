@@ -3,7 +3,9 @@ package Assembler;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Optional;
+import java.util.function.Function;
 
+import Assembler.AssemblerException.ExceptionType;
 import Assembler.Token.TokenType;
 
 public class Lexer {
@@ -55,32 +57,46 @@ public class Lexer {
         // TODO: make sure each none newline token is delimeted by space or newline
         while (!source.IsDone()) {
             var token = lexCharacter(source.Peek());
-            if (token.isPresent()) {
-                tokens.add(token.get());
+            tokens.add(token);
+            var foundWhiteSpace = absorb(' ');
+            var newline = absorb('\n');
+            if (newline) {
+                tokens.add(new Token(position, currentLine++, TokenType.NEWLINE));
+                position = 1;
+            } else if (!foundWhiteSpace) {
+                throw new AssemblerException(currentLine, position,
+                        "expected white space between items in a statement\nor newline between statements",
+                        AssemblerException.ExceptionType.LexicalError);
             }
+
         }
         return tokens;
     }
 
+    private boolean absorb(char needle) {
+        Function<Character, Boolean> checkWhiteSpace = ((peeked) -> peeked == needle || peeked == '\r');
+        var whiteSpaceFound = false;
+        while (!source.IsDone()
+                && checkWhiteSpace
+                        .apply(source.Peek())) {
+            position++;
+            source.GetChar();
+            whiteSpaceFound = true;
+
+        }
+        return whiteSpaceFound;
+    }
+
     // Manages state switching of the Lexer
     // but also manages the output after of a state ie the token it may produce
-    private Optional<Token> lexCharacter(Character current) throws AssemblerException {
-        if (isLetter(current)) {
-            return ProcessWord();
+    private Token lexCharacter(Character current) throws AssemblerException {
+
+        if (isLowerCase(current)) {
+            return (ProcessWord());
         } else if (isDigit(current)) {
-            return processInteger();
-        } else if (current == ' ') {
-            source.Swallow(1);
-            position++;
-            return Optional.empty();
-        } else if (current == '\r') {
-            source.Swallow(1);
-            return Optional.empty();
-        } else if (current == '\n') {
-            source.Swallow(1);
-            var prev_position = position + 1;
-            position = 1;
-            return Optional.of(new Token(prev_position, currentLine++, TokenType.NEWLINE));
+            return (processInteger().orElseThrow());
+        } else if (current == 'R') {
+            return ProccesRegisterBetterErrors();
         } else {
             throw new AssemblerException(currentLine, position, "Character `" + current + "` not recognized",
                     AssemblerException.ExceptionType.LexicalError);
@@ -88,40 +104,85 @@ public class Lexer {
 
     }
 
-    protected Optional<Token> ProcessWord() {
-        return
-        // first we check if its register first char == "R"
-        Optional.ofNullable((source.Peek() == 'R') ? source.GetChar() : null)
-                .flatMap(unsused -> Optional
-                        // then we make sure that next character is digit (part of register number)
-                        .ofNullable(!source.IsDone() && isDigit(source.Peek()) ? source.GetChar() : null)
-                        // then we make sure that next character is digit (part of register number)
-                        .map(register_10_digit -> Optional.ofNullable(isDigit(source.Peek()) ? source.GetChar() : null)
-                                // we use char - '0' to convert from ascci to integer
-                                // if the second digit is present we mutliply the first digits value by 10 (for
-                                // 10s place)
-                                // and it to value of second digit
-                                // TODO: and make sure fist digit is less then 4 and the second digit is less
-                                // then 2 if the first digit is 3
-                                .map(register_1_digit -> (register_10_digit - '0') * 10
-                                        + (register_1_digit - '0'))
-                                // otherwise (just single digit) we get first digits value
-                                .orElse(register_10_digit - '0')))
-                // if we find a correct register number we create registeer token
-                .map(regsiter_number -> new Token(position, currentLine, TokenType.REGISTER, regsiter_number))
-                // otherwise if register is invalid or its not register read word and find it if
-                // possible
-                .or(() -> {
+    private Character GetChar() {
+        position++;
+        return source.GetChar();
+    }
 
-                    int startPosition = position;
-                    String word = "";
-                    // if its not a register it can only be alphabetic
-                    while (!source.IsDone() && (isLetter(source.Peek()))) {
-                        position++;
-                        word += source.GetChar();
-                    }
-                    return Optional.ofNullable(keywords.get(word)).map(tt -> new Token(startPosition, currentLine, tt));
-                });
+    public Token ProccesRegisterBetterErrors() throws AssemblerException {
+        var startPosition = position++;
+        source.Swallow(1);
+
+        if (source.IsDone()) {
+            throw new AssemblerException(currentLine, startPosition, "invalied register: register number not given",
+                    AssemblerException.ExceptionType.LexicalError);
+        }
+        var firstDigit = GetChar();
+        if (!isDigit(firstDigit)) {
+            throw new AssemblerException(currentLine, startPosition, "invalied register: register number not given",
+                    AssemblerException.ExceptionType.LexicalError);
+        }
+        Function<Character, Boolean> notWhiteSpace = (c) -> !(c == ' ' || c == '\r' || c == '\n');
+        if (!source.IsDone() && isDigit(source.Peek())) {
+            var secondDigit = GetChar();
+            var registerNumber = (firstDigit - '0') * 10 + (secondDigit - '0');
+            if (registerNumber > 31) {
+                throw new AssemblerException(currentLine, startPosition,
+                        "invalied register: register number to big " + registerNumber,
+                        AssemblerException.ExceptionType.LexicalError);
+            }
+            return new Token(startPosition, currentLine, TokenType.REGISTER, registerNumber);
+
+        } else if (!source.IsDone() && (notWhiteSpace.apply(source.Peek()))) {
+            throw new AssemblerException(currentLine, startPosition,
+                    "invalied register: second digit of register not a digit: " + source.Peek(),
+                    AssemblerException.ExceptionType.LexicalError);
+        } else {
+            return new Token(startPosition, currentLine, TokenType.REGISTER, firstDigit - '0');
+        }
+
+    }
+
+    public Token ProcessRegister() throws AssemblerException {
+        var startPosition = position++;
+        source.Swallow(1);
+
+        return Optional
+                .ofNullable(!source.IsDone() && isDigit(source.Peek()) ? GetChar() : null)
+                // then we make sure that next character is digit (part of register number)
+                .map(register_10_digit -> Optional.ofNullable(isDigit(source.Peek()) ? GetChar() : null)
+
+                        // we use char - '0' to convert from ascci to integer
+                        // if the second digit is present we mutliply the first digits value by 10 (for
+                        // 10s place)
+                        // and it to value of second digit
+                        // TODO: and make sure fist digit is less then 4 and the second digit is less
+                        // then 2 if the first digit is 3
+                        .map(register_1_digit -> (register_10_digit - '0') * 10
+                                + (register_1_digit - '0'))
+                        // otherwise (just single digit) we get first digits value
+                        .orElse(register_10_digit - '0'))
+                // then we bounds check because with 2 digits we can go up to 99, but we only
+                // have 32 registers
+                .filter(n -> n <= 31)
+                // if we find a correct register number we create registeer token
+                .map(regsiter_number -> new Token(startPosition, currentLine, TokenType.REGISTER, regsiter_number))
+                .orElseThrow(() -> new AssemblerException(currentLine, startPosition, "invalied register",
+                        AssemblerException.ExceptionType.LexicalError));
+
+    }
+
+    protected Token ProcessWord() throws AssemblerException {
+
+        int startPosition = position;
+        String word = "";
+        while (!source.IsDone() && (isLowerCase(source.Peek()))) {
+            position++;
+            word += source.GetChar();
+        }
+        return Optional.ofNullable(keywords.get(word)).map(tt -> new Token(startPosition, currentLine, tt))
+                .orElseThrow(() -> new AssemblerException(currentLine, startPosition, "invalid instruction part",
+                        ExceptionType.LexicalError));
     }
 
     private Optional<Token> processInteger() {
@@ -134,8 +195,8 @@ public class Lexer {
                 : Optional.of(new Token(position, currentLine, TokenType.VALUE, Integer.parseInt(number)));
     }
 
-    private static boolean isLetter(char c) {
-        return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
+    private static boolean isLowerCase(char c) {
+        return c >= 'a' && c <= 'z';
     }
 
     private static boolean isDigit(char c) {
