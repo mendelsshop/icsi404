@@ -7,7 +7,6 @@ import java.nio.file.Paths;
 
 public class Assembler {
     public static void main(String[] args) {
-        // Handleing case when no awk file is specified
         if (args.length != 3) {
             System.err.println("Usage Assembler [input] [output]");
             System.exit(1);
@@ -24,7 +23,7 @@ public class Assembler {
                 e.DisplayError(content, myPath.toString());
             }
         } catch (IOException e) {
-            System.err.println("Error while reading awk file: " + myPath.toString() + ": " + e.getMessage());
+            System.err.println("Error while reading assembly file: " + myPath.toString() + ": " + e.getMessage());
         }
     }
 }
