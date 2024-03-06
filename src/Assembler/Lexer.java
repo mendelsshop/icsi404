@@ -94,7 +94,7 @@ public class Lexer {
         if (isLowerCase(current)) {
             return (ProcessWord());
         } else if (isDigit(current)) {
-            return (processInteger().orElseThrow());
+            return (processInteger());
         } else if (current == 'R') {
             return ProccesRegisterBetterErrors();
         } else {
@@ -119,28 +119,32 @@ public class Lexer {
         }
         var firstDigit = GetChar();
         if (!isDigit(firstDigit)) {
-            throw new AssemblerException(currentLine, startPosition, "invalied register: register number not given",
+            throw new AssemblerException(currentLine, startPosition,
+                    "invalied register: register number is not a number: `" + firstDigit + "`",
                     AssemblerException.ExceptionType.LexicalError);
         }
-        Function<Character, Boolean> notWhiteSpace = (c) -> !(c == ' ' || c == '\r' || c == '\n');
         if (!source.IsDone() && isDigit(source.Peek())) {
             var secondDigit = GetChar();
             var registerNumber = (firstDigit - '0') * 10 + (secondDigit - '0');
             if (registerNumber > 31) {
                 throw new AssemblerException(currentLine, startPosition,
-                        "invalied register: register number to big " + registerNumber,
+                        "invalied register: register number to big: `" + registerNumber + "`",
                         AssemblerException.ExceptionType.LexicalError);
             }
             return new Token(startPosition, currentLine, TokenType.REGISTER, registerNumber);
 
-        } else if (!source.IsDone() && (notWhiteSpace.apply(source.Peek()))) {
+        } else if (!source.IsDone() && (notWhiteSpace(source.Peek()))) {
             throw new AssemblerException(currentLine, startPosition,
-                    "invalied register: second digit of register not a digit: " + source.Peek(),
+                    "invalied register: second digit of register not a digit: `" + source.Peek() + "`",
                     AssemblerException.ExceptionType.LexicalError);
         } else {
             return new Token(startPosition, currentLine, TokenType.REGISTER, firstDigit - '0');
         }
 
+    }
+
+    private Boolean notWhiteSpace(Character c) {
+        return !(c == ' ' || c == '\r' || c == '\n');
     }
 
     public Token ProcessRegister() throws AssemblerException {
@@ -180,19 +184,29 @@ public class Lexer {
             position++;
             word += source.GetChar();
         }
+        var words = word;
         return Optional.ofNullable(keywords.get(word)).map(tt -> new Token(startPosition, currentLine, tt))
-                .orElseThrow(() -> new AssemblerException(currentLine, startPosition, "invalid instruction part",
+                .orElseThrow(() -> new AssemblerException(currentLine, startPosition,
+                        "invalid instruction: `" + words + "`",
                         ExceptionType.LexicalError));
     }
 
-    private Optional<Token> processInteger() {
+    private Token processInteger() throws AssemblerException {
         String number = "";
+        int startPosition = position;
         while (!source.IsDone() && isDigit(source.Peek())) {
             position++;
             number += source.GetChar();
         }
-        return number == "" ? Optional.empty()
-                : Optional.of(new Token(position, currentLine, TokenType.VALUE, Integer.parseInt(number)));
+        if (!source.IsDone() && notWhiteSpace(source.Peek())) {
+
+            throw new AssemblerException(currentLine, startPosition,
+                    "invalied register: last digit of register not a digit: `" + source.Peek() + "`",
+                    AssemblerException.ExceptionType.LexicalError);
+        }
+        // we know that this method is called only when we peek a number so their is no
+        // chance that the number is empty
+        return new Token(position, currentLine, TokenType.VALUE, Integer.parseInt(number));
     }
 
     private static boolean isLowerCase(char c) {
