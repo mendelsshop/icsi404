@@ -81,8 +81,8 @@ public class Lexer {
         while (!source.IsDone()
                 && checkWhiteSpace
                         .apply(source.Peek())) {
-            
-            if  (source.GetChar() == '\n') {
+
+            if (source.GetChar() == '\n') {
                 currentLine++;
             } else {
                 position++;
@@ -100,7 +100,10 @@ public class Lexer {
         if (isLowerCase(current)) {
             return (ProcessWord());
         } else if (isDigit(current)) {
-            return (processInteger());
+            return (processInteger(false));
+        } else if (current == '-') {
+            source.Swallow(1);
+            return (processInteger(true));
         } else if (current == 'R') {
             return ProccesRegisterBetterErrors();
         } else {
@@ -197,7 +200,7 @@ public class Lexer {
                         ExceptionType.LexicalError));
     }
 
-    private Token processInteger() throws AssemblerException {
+    private Token processInteger(boolean negative) throws AssemblerException {
         String number = "";
         int startPosition = position;
         while (!source.IsDone() && isDigit(source.Peek())) {
@@ -212,7 +215,7 @@ public class Lexer {
         }
         // we know that this method is called only when we peek a number so their is no
         // chance that the number is empty
-        return new Token(position, currentLine, TokenType.VALUE, Integer.parseInt(number));
+        return new Token(position, currentLine, TokenType.VALUE, (negative ? -1 : 1) * Integer.parseInt(number));
     }
 
     private static boolean isLowerCase(char c) {
