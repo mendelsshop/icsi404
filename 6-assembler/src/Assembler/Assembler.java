@@ -24,6 +24,7 @@ public class Assembler {
                 var parser = new Parser(lexed);
                 for (var inst: parser.parse().get()) {
                     System.out.println(inst);
+                    System.out.println(inst.toBitPattern());
                 }
             } catch (AssemblerException e) {
                 e.DisplayError(content, myPath.toString());
