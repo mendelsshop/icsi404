@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.LinkedList;
 
 public class Assembler {
     public static void main(String[] args) {
@@ -15,10 +16,15 @@ public class Assembler {
         String content;
         try {
             content = new String(Files.readAllBytes(myPath));
-
+            
             try {
                 Lexer lexer = new Lexer(content);
-                System.out.println(lexer.lex());
+                LinkedList<Token> lexed = lexer.lex();
+                System.out.println(lexed);
+                var parser = new Parser(lexed);
+                for (var inst: parser.parse().get()) {
+                    System.out.println(inst);
+                }
             } catch (AssemblerException e) {
                 e.DisplayError(content, myPath.toString());
             }
