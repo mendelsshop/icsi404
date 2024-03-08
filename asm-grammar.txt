@@ -1,11 +1,12 @@
 program = statements
 statements = statement NEWLINE statements | statement NEWLINE
-statement = math | branch | halt | copy | jump | call | push | pop | load | store | return | peek | pop | interrupt
+statement = math | branch | halt | copy | jump | call | push | pop | load | store | return | peek | pop | interrupt | callif 
 math = MATH mathOperator ADD twoR | MATH mathOperator threeR
 shift = SHIFT LEFT twoR | SHIFT LEFT threeR | SHIFT RIGHT twoR | SHIFT RIGHT threeR
 branch = BRANCH booleanOperator threeR NUMBER | BRANCH booleanOperator twoR NUMBER 
 jump = JUMP destOnly | JUMP noR
-call = CALL booleanOperator threeR NUMBER | CALL booleanOperator twoR NUMBER | CALL destOnly | CALL noR
+call = CALL booleanOperator threeR NUMBER | CALL booleanOperator twoR NUMBER 
+callif = CALLIF destOnly | CALLIF noR
 push = PUSH threeR | PUSH twoR | PUSH destOnly
 load = LOAD threeR | LOAD twoR NUMBER | LOAD destOnly
 return = RETURN

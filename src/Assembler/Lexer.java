@@ -18,8 +18,8 @@ public class Lexer {
         {
             put("math", TokenType.MATH);
             put("add", TokenType.ADD);
-            put("subtract", TokenType.SUBTRACT);
-            put("multiply", TokenType.MULTIPLY);
+            put("sub", TokenType.SUBTRACT);
+            put("mul", TokenType.MULTIPLY);
             put("and", TokenType.AND);
             put("or", TokenType.OR);
             put("not", TokenType.NOT);
@@ -29,6 +29,7 @@ public class Lexer {
             put("branch", TokenType.BRANCH);
             put("jump", TokenType.JUMP);
             put("call", TokenType.CALL);
+            put("callif", TokenType.CALLIF);
             put("push", TokenType.PUSH);
             put("load", TokenType.LOAD);
             put("return", TokenType.RETURN);
@@ -36,12 +37,12 @@ public class Lexer {
             put("peek", TokenType.PEEK);
             put("pop", TokenType.POP);
             put("interrupt", TokenType.INTERRUPT);
-            put("equal", TokenType.EQUAL);
-            put("unequal", TokenType.UNEQUAL);
-            put("greater", TokenType.GREATER);
-            put("less", TokenType.LESS);
-            put("greaterOrEqual", TokenType.GREATEROREQUAL);
-            put("lessOrEqual", TokenType.LESSOREQUAL);
+            put("eq", TokenType.EQUAL);
+            put("ne", TokenType.UNEQUAL);
+            put("gt", TokenType.GREATER);
+            put("le", TokenType.LESS);
+            put("ge", TokenType.GREATEROREQUAL);
+            put("le", TokenType.LESSOREQUAL);
             put("shift", TokenType.SHIFT);
             put("left", TokenType.LEFT);
             put("right", TokenType.RIGHT);
@@ -59,9 +60,10 @@ public class Lexer {
             var token = lexCharacter(source.Peek());
             tokens.add(token);
             var foundWhiteSpace = absorb(' ');
+            var line = currentLine;
             var newline = absorb('\n');
             if (newline) {
-                tokens.add(new Token(position, currentLine++, TokenType.NEWLINE));
+                tokens.add(new Token(position, line, TokenType.NEWLINE));
                 position = 1;
             } else if (!foundWhiteSpace) {
                 throw new AssemblerException(currentLine, position,
@@ -79,8 +81,12 @@ public class Lexer {
         while (!source.IsDone()
                 && checkWhiteSpace
                         .apply(source.Peek())) {
-            position++;
-            source.GetChar();
+            
+            if  (source.GetChar() == '\n') {
+                currentLine++;
+            } else {
+                position++;
+            }
             whiteSpaceFound = true;
 
         }
