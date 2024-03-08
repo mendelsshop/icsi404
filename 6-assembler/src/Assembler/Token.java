@@ -6,7 +6,7 @@ public class Token {
     public enum TokenType {
         MATH, ADD, SUBTRACT, MULTIPLY, AND, OR, NOT, XOR, COPY, HALT, BRANCH, JUMP, CALL, PUSH, LOAD, RETURN, STORE,
         PEEK, POP, INTERRUPT, EQUAL, UNEQUAL, GREATER, LESS, GREATEROREQUAL, LESSOREQUAL, SHIFT, LEFT, RIGHT, REGISTER,
-        VALUE, NEWLINE
+        VALUE, NEWLINE, CALLIF
     }
 
     private int startPosition;

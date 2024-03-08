@@ -3,9 +3,16 @@ package Assembler;
 public class Instruction {
     // TODO: method to convert ot bit string
     public InstructionType type;
-    public Operation operation;
-    public RegisterFormat registers;
+    public Operation operation = Operation.NOP;
+    public RegisterFormat registers = new RegisterFormat.NoR();
     public int immediate = 0;
+
+    /*
+     * private constructor so that the only way to create an instruction is via
+     * buildwithtype
+     */
+    private Instruction() {
+    }
 
     public Instruction immediate(int immediate) {
         this.immediate = immediate;
