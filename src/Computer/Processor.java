@@ -138,9 +138,12 @@ public class Processor {
         }
 
         public static Word getNBits(Word word, int size, int shift) {
-                // creates a mask that only preseveres (size) amount of bits after shift right by (shift)
-                // we do this instead mutation current instruction which would be shift mask shift mask shift mask
-                // we dont mutate so each time we have to shift and mask relative ot start of word
+                // creates a mask that only preseveres (size) amount of bits after shift right
+                // by (shift)
+                // we do this instead mutation current instruction which would be shift mask
+                // shift mask shift mask
+                // we dont mutate so each time we have to shift and mask relative ot start of
+                // word
                 Function<Integer, Bit> getMaskBit = i -> new Bit(i >= shift && i < shift + size);
                 Word mask = new Word(new Bit[] { getMaskBit.apply(0), getMaskBit.apply(1), getMaskBit.apply(2),
                                 getMaskBit.apply(3), getMaskBit.apply(4), getMaskBit.apply(5), getMaskBit.apply(6),
@@ -166,7 +169,8 @@ public class Processor {
         }
 
         private InstructionCode getInstructionCode() {
-                // this swithc statements is like a bunch of and on the first three bits but using siwtch
+                // this swithc statements is like a bunch of and on the first three bits but
+                // using siwtch
                 return switch (new Triple<>(IC.getBit(1).getValue(), IC.getBit(1).getValue(),
                                 IC.getBit(1).getValue())) {
                         // requires preview feautres (java 21) or java 22
@@ -183,7 +187,7 @@ public class Processor {
         }
 
         private InstructionFormat getInstructionFormat() {
-                // same as  getInstructionCode, but for 2 bits
+                // same as getInstructionCode, but for 2 bits
                 return switch (new Tuple<>(IF.getBit(0).getValue(), IF.getBit(1).getValue())) {
                         case Tuple(var fst, var snd) when fst && snd -> InstructionFormat.TWOR;
                         case Tuple(var fst, var snd) when fst -> InstructionFormat.ONER;
