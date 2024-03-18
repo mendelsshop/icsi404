@@ -1,5 +1,6 @@
 package Computer;
 
+import Utils.Utils.*;
 import static Utils.Utils.*;
 
 import java.util.function.Function;
@@ -45,10 +46,15 @@ public class Processor {
         }
 
         private void decode() {
+                // get if (0r/1r/2r/3r)
                 IF = getNBits(2, 0);
+                // get instruction type
                 IC = getNBits(3, 2);
+                // decode based if
                 switch (getInstructionFormat()) {
+                        // for immedieats there is no reason to mask as they are the last part of word
                         case ZEROR -> {
+                                // shift right by 5 to get the 27 bit immediate value
                                 Immediate = currentInstruction.rightShift(5);
                         }
                         case ONER -> {
@@ -73,7 +79,7 @@ public class Processor {
                 }
         }
 
-        // TODO: test this
+        // use ands to go from binary to decimal for 5 bit binary value
         private int registerAddressDecoder(Word word) {
                 var firstBit = word.getBit(0);
                 var secondBit = word.getBit(1);
@@ -132,6 +138,9 @@ public class Processor {
         }
 
         public static Word getNBits(Word word, int size, int shift) {
+                // creates a mask that only preseveres (size) amount of bits after shift right by (shift)
+                // we do this instead mutation current instruction which would be shift mask shift mask shift mask
+                // we dont mutate so each time we have to shift and mask relative ot start of word
                 Function<Integer, Bit> getMaskBit = i -> new Bit(i >= shift && i < shift + size);
                 Word mask = new Word(new Bit[] { getMaskBit.apply(0), getMaskBit.apply(1), getMaskBit.apply(2),
                                 getMaskBit.apply(3), getMaskBit.apply(4), getMaskBit.apply(5), getMaskBit.apply(6),
@@ -157,8 +166,11 @@ public class Processor {
         }
 
         private InstructionCode getInstructionCode() {
+                // this swithc statements is like a bunch of and on the first three bits but using siwtch
                 return switch (new Triple<>(IC.getBit(1).getValue(), IC.getBit(1).getValue(),
                                 IC.getBit(1).getValue())) {
+                        // requires preview feautres (java 21) or java 22
+                        // fst & sbd & thrd
                         case Triple(var fst, var snd, var thrd) when fst && snd && thrd -> throw new RuntimeException();
                         case Triple(var fst, var snd, var thrd) when snd && thrd -> InstructionCode.POP;
                         case Triple(var fst, var snd, var thrd) when fst && thrd -> InstructionCode.STORE;
@@ -171,6 +183,7 @@ public class Processor {
         }
 
         private InstructionFormat getInstructionFormat() {
+                // same as  getInstructionCode, but for 2 bits
                 return switch (new Tuple<>(IF.getBit(0).getValue(), IF.getBit(1).getValue())) {
                         case Tuple(var fst, var snd) when fst && snd -> InstructionFormat.TWOR;
                         case Tuple(var fst, var snd) when fst -> InstructionFormat.ONER;

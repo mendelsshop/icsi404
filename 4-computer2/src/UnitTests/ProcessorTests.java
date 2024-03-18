@@ -4,21 +4,26 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import static Utils.Utils.*;
-
 import Computer.Bit;
 import Computer.MainMemory;
 import Computer.Processor;
 import Computer.Word;
+import static Utils.Utils.*;
 
 public class ProcessorTests {
 
+    // NOTE: some test don't run properly when run in parellel sometimes (its vey
+    // weird) as the each have their own proccesor, but it coould have to do with
+    // main memeory being static (shard)
     @Test
     public void decode() {
         System.out.println(Processor.getNBits(new Word(new Bit[] {
-                getTrue(), getTrue(), getTrue(), getFalse(), getTrue(), getTrue(), getTrue(), getTrue(), getTrue(),
-                getTrue(), getTrue(), getTrue(), getTrue(), getTrue(), getTrue(), getTrue(), getTrue(), getTrue(),
-                getTrue(), getTrue(), getTrue(), getTrue(), getTrue(), getTrue(), getTrue(), getTrue(), getTrue(),
+                getTrue(), getTrue(), getTrue(), getFalse(), getTrue(), getTrue(),
+                getTrue(), getTrue(), getTrue(),
+                getTrue(), getTrue(), getTrue(), getTrue(), getTrue(), getTrue(),
+                getTrue(), getTrue(), getTrue(),
+                getTrue(), getTrue(), getTrue(), getTrue(), getTrue(), getTrue(),
+                getTrue(), getTrue(), getTrue(),
                 getTrue(), getTrue(), getTrue(), getTrue(), getTrue(), }).clone(), 6, 3));
     }
 
@@ -37,6 +42,8 @@ public class ProcessorTests {
      */
     // @formatter:on
 
+    // some of the more advanced tests are adapted from
+    // https://github.com/keon/awesome-bits
     @Test
     public void processor0() {
         var processor = new Processor();
@@ -373,5 +380,188 @@ public class ProcessorTests {
         System.out.println(processor.getRegister(1).getSigned());
         assertEquals(-500, processor.getRegister(2).getSigned());
         assertEquals(9, processor.getRegister(3).getUnsigned());
+    }
+
+    @Test
+    public void processor9() {
+        // abs
+        var processor = new Processor();
+        MainMemory.load(new String[] {
+
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=1]], immediate=100]
+                "00000000000110010001100000100001",
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=2]], immediate=31]
+                "00000000000001111101100001000001",
+                // Instruction [type=MATH, operation=RIGHT_SHIFT,
+                // registers=ThreeR[Rs1=Register[number=1], Rs2=Register[number=2],
+                // Rd=Register[number=3]], immediate=0]
+                "00000000000010001011010001100010",
+                // Instruction [type=MATH, operation=XOR,
+                // registers=ThreeR[Rs1=Register[number=1], Rs2=Register[number=3],
+                // Rd=Register[number=4]], immediate=0]
+                "00000000000010001110100010000010",
+                // Instruction [type=MATH, operation=SUB,
+                // registers=ThreeR[Rs1=Register[number=4], Rs2=Register[number=3],
+                // Rd=Register[number=5]], immediate=0]
+                "00000000001000001111110010100010",
+        });
+        processor.run();
+        System.out.println(processor.getRegister(5).getSigned());
+        System.out.println(processor.getRegister(4).getSigned());
+        System.out.println(processor.getRegister(3).getSigned());
+        System.out.println(processor.getRegister(2).getSigned());
+        System.out.println(processor.getRegister(1).getSigned());
+        assertEquals(100, processor.getRegister(5).getUnsigned());
+    }
+
+    @Test
+    public void processor10() {
+        // avg 1
+        var processor = new Processor();
+        MainMemory.load(new String[] {
+
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=1]], immediate=5]
+                "00000000000000010101100000100001",
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=2]], immediate=7]
+                "00000000000000011101100001000001",
+                // Instruction [type=MATH, operation=ADD,
+                // registers=ThreeR[Rs1=Register[number=1], Rs2=Register[number=2],
+                // Rd=Register[number=3]], immediate=0]
+                "00000000000010001011100001100010",
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=4]], immediate=1]
+                "00000000000000000101100010000001",
+                // Instruction [type=MATH, operation=RIGHT_SHIFT,
+                // registers=ThreeR[Rs1=Register[number=3], Rs2=Register[number=4],
+                // Rd=Register[number=3]], immediate=0]
+                "00000000000110010011010001100010",
+        });
+        processor.run();
+        System.out.println(processor.getRegister(4).getSigned());
+        System.out.println(processor.getRegister(3).getSigned());
+        System.out.println(processor.getRegister(2).getSigned());
+        System.out.println(processor.getRegister(1).getSigned());
+        assertEquals(6, processor.getRegister(3).getUnsigned());
+    }
+
+    @Test
+    public void processor11() {
+        // swap
+        var processor = new Processor();
+        MainMemory.load(new String[] {
+
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=1]], immediate=10]
+                "00000000000000101001100000100001",
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=2]], immediate=20]
+                "00000000000001010001100001000001",
+                // Instruction [type=MATH, operation=XOR,
+                // registers=ThreeR[Rs1=Register[number=1], Rs2=Register[number=2],
+                // Rd=Register[number=1]], immediate=0]
+                "00000000000010001010100000100010",
+                // Instruction [type=MATH, operation=XOR,
+                // registers=ThreeR[Rs1=Register[number=2], Rs2=Register[number=1],
+                // Rd=Register[number=2]], immediate=0]
+                "00000000000100000110100001000010",
+                // Instruction [type=MATH, operation=XOR,
+                // registers=ThreeR[Rs1=Register[number=1], Rs2=Register[number=2],
+                // Rd=Register[number=1]], immediate=0]
+                "00000000000010001010100000100010",
+        });
+        processor.run();
+        System.out.println(processor.getRegister(2).getSigned());
+        System.out.println(processor.getRegister(1).getSigned());
+        assertEquals(10, processor.getRegister(2).getSigned());
+        assertEquals(20, processor.getRegister(1).getUnsigned());
+    }
+
+    @Test
+    public void processor12() {
+        // avg 2
+        var processor = new Processor();
+        MainMemory.load(new String[] {
+
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=1]], immediate=5]
+                "00000000000000010101100000100001",
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=2]], immediate=7]
+                "00000000000000011101100001000001",
+                // Instruction [type=MATH, operation=XOR,
+                // registers=ThreeR[Rs1=Register[number=1], Rs2=Register[number=2],
+                // Rd=Register[number=3]], immediate=0]
+                "00000000000010001010100001100010",
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=4]], immediate=1]
+                "00000000000000000101100010000001",
+                // Instruction [type=MATH, operation=RIGHT_SHIFT,
+                // registers=ThreeR[Rs1=Register[number=3], Rs2=Register[number=4],
+                // Rd=Register[number=3]], immediate=0]
+                "00000000000110010011010001100010",
+                // Instruction [type=MATH, operation=AND,
+                // registers=ThreeR[Rs1=Register[number=1], Rs2=Register[number=2],
+                // Rd=Register[number=4]], immediate=0]
+                "00000000000010001010000010000010",
+                // Instruction [type=MATH, operation=ADD,
+                // registers=ThreeR[Rs1=Register[number=3], Rs2=Register[number=4],
+                // Rd=Register[number=3]], immediate=0]
+                "00000000000110010011100001100010",
+        });
+        processor.run();
+        System.out.println(processor.getRegister(4).getSigned());
+        System.out.println(processor.getRegister(3).getSigned());
+        System.out.println(processor.getRegister(2).getSigned());
+        System.out.println(processor.getRegister(1).getSigned());
+        assertEquals(6, processor.getRegister(3).getUnsigned());
+    }
+
+    @Test
+    public void processor13() {
+        // max int
+        var processor = new Processor();
+        MainMemory.load(new String[] {
+
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=1]], immediate=1]
+                "00000000000000000101100000100001",
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=7]], immediate=31]
+                "00000000000001111101100011100001",
+                // Instruction [type=MATH, operation=LEFT_SHIFT,
+                // registers=ThreeR[Rs1=Register[number=1], Rs2=Register[number=7],
+                // Rd=Register[number=2]], immediate=0]
+                "00000000000010011111000001000010",
+                // Instruction [type=MATH, operation=NOT, registers=TwoR[Rs1=Register[number=2],
+                // Rd=Register[number=3]], immediate=0]
+                "00000000000000001010110001100011",
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=4]], immediate=1]
+                "00000000000000000101100010000001",
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=6]], immediate=31]
+                "00000000000001111101100011000001",
+                // Instruction [type=MATH, operation=LEFT_SHIFT,
+                // registers=ThreeR[Rs1=Register[number=4], Rs2=Register[number=6],
+                // Rd=Register[number=5]], immediate=0]
+                "00000000001000011011000010100010",
+                // Instruction [type=MATH, operation=SUB,
+                // registers=ThreeR[Rs1=Register[number=5], Rs2=Register[number=4],
+                // Rd=Register[number=6]], immediate=0]
+                "00000000001010010011110011000010",
+        });
+        processor.run();
+        System.out.println(processor.getRegister(7).getSigned());
+        System.out.println(processor.getRegister(6).getSigned());
+        System.out.println(processor.getRegister(5).getSigned());
+        System.out.println(processor.getRegister(4).getSigned());
+        System.out.println(processor.getRegister(3).getSigned());
+        System.out.println(processor.getRegister(2).getSigned());
+        System.out.println(processor.getRegister(1).getSigned());
+        assertEquals(Integer.MAX_VALUE, processor.getRegister(6).getSigned());
     }
 }
