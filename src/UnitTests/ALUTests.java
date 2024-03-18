@@ -87,6 +87,16 @@ public class ALUTests {
     private static final Tuple<Integer, Integer> RANGE_NEGATIVE_MID_SIZE_NUMBERS = new Tuple<Integer, Integer>(
             (Integer.MIN_VALUE / 2), (Integer.MIN_VALUE / 2) + 10);
 
+
+    @Test
+    public void shiftWeirdTest() {
+        var alu = new ALU();
+        alu.setOp1(new Word(5));
+        alu.setOp2(new Word(10));
+        alu.doOperation(LEFT_SHIFT);
+        assertEquals(5120, alu.getResult().getUnsigned());
+    }
+
     @Test
     public void add0to10() {
         MatrixDoMath((a, b) -> a + b, ALU::add, "add", RANGE_0_TO_10, RANGE_0_TO_10);
