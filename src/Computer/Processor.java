@@ -167,8 +167,8 @@ public class Processor {
     private InstructionCode getInstructionCode() {
         // this swithc statements is like a bunch of and on the first three bits but
         // using siwtch
-        return switch (new Triple<Boolean, Boolean, Boolean>(IC.getBit(1).getValue(), IC.getBit(1).getValue(),
-                IC.getBit(1).getValue())) {
+        return switch (new Triple<Boolean, Boolean, Boolean>(IC.getBit(0).getValue(), IC.getBit(1).getValue(),
+                IC.getBit(2).getValue())) {
             // requires preview feautres (java 21) or java 22
             // fst & sbd & thrd
             case Triple(Boolean fst, Boolean snd, Boolean thrd) when fst && snd && thrd -> throw new RuntimeException();
@@ -224,21 +224,21 @@ public class Processor {
                 switch (getInstructionFormat()) {
                     case ONER -> {
                         push(PC);
-                        result = ALU.add(Rd, Immediate);
+                        result = ALU.add(getRegister(Rd), Immediate);
                     }
                     case THREER -> {
-                        alu.setOp1(Rs1);
-                        alu.setOp2(Rs2);
+                        alu.setOp1(getRegister(Rs1));
+                        alu.setOp2(getRegister(Rs2));
                         if (alu.doBooleanOperation(op)) {
                             push(PC);
-                            result = ALU.add(Rd, Immediate);
+                            result = ALU.add(getRegister(Rd), Immediate);
                         } else {
                             result = PC;
                         }
                     }
                     case TWOR -> {
-                        alu.setOp1(Rs1);
-                        alu.setOp2(Rd);
+                        alu.setOp1(getRegister(Rs1));
+                        alu.setOp2(getRegister(Rd));
                         if (alu.doBooleanOperation(op)) {
                             push(PC);
                             result = ALU.add(PC, Immediate);
@@ -254,9 +254,9 @@ public class Processor {
             }
             case LOAD -> {
                 switch (getInstructionFormat()) {
-                    case TWOR -> result = ALU.add(Rs1, Immediate);
-                    case THREER -> result = ALU.add(Rs1, Rs2);
-                    case ONER -> result = ALU.add(Rd, Immediate);
+                    case TWOR -> result = MainMemory.read(ALU.add(getRegister(Rs1), Immediate));
+                    case THREER -> result = MainMemory.read(ALU.add(getRegister(Rs1), getRegister(Rs2)));
+                    case ONER -> result = MainMemory.read(ALU.add(getRegister(Rd), Immediate));
                     case ZEROR -> {
                         result = pop();
                         // TODO: when we say Return is pop and set the PC
@@ -293,12 +293,12 @@ public class Processor {
                 switch (getInstructionFormat()) {
                     // PEEK (does not modify sp)
                     case TWOR -> {
-                        var spRelativejump = ALU.add(Rs1, Immediate);
+                        var spRelativejump = ALU.add(getRegister(Rs1), Immediate);
                         result = MainMemory.read(ALU.sub(SP, spRelativejump));
                     }
                     // PEEK (does not modify sp)
                     case THREER -> {
-                        var spRelativejump = ALU.add(Rs1, Rs2);
+                        var spRelativejump = ALU.add(getRegister(Rs1), getRegister(Rs2));
                         result = MainMemory.read(ALU.sub(SP, spRelativejump));
                     }
                     // POP (modifies SP)
@@ -316,21 +316,21 @@ public class Processor {
             case PUSH -> {
                 switch (getInstructionFormat()) {
                     case TWOR -> {
-                        alu.setOp1(Rd);
-                        alu.setOp2(Rs1);
+                        alu.setOp1(getRegister(Rd));
+                        alu.setOp2(getRegister(Rs1));
                         alu.doOperation(op);
                         result = alu.getResult();
                         SP.decrement();
                     }
                     case THREER -> {
-                        alu.setOp1(Rs1);
-                        alu.setOp2(Rs2);
+                        alu.setOp1(getRegister(Rs1));
+                        alu.setOp2(getRegister(Rs2));
                         alu.doOperation(op);
                         result = alu.getResult();
                         SP.decrement();
                     }
                     case ONER -> {
-                        alu.setOp1(Rd);
+                        alu.setOp1(getRegister(Rd));
                         alu.setOp2(Immediate);
                         alu.doOperation(op);
                         result = alu.getResult();
@@ -347,9 +347,9 @@ public class Processor {
                     // TODO: when adding should we use ALU.add2 or call dispatch on alu (or maybe
                     // move add2/add4 to word)
                     // maybe do addition here and rest in store
-                    case TWOR -> result = ALU.add(Rd, Immediate);
-                    case THREER -> result = ALU.add(Rd, Rs1);
-                    case ONER -> MainMemory.write(Rd, Immediate);
+                    case TWOR -> result = ALU.add(getRegister(Rd), Immediate);
+                    case THREER -> result = ALU.add(getRegister(Rd), getRegister(Rs1));
+                    case ONER -> MainMemory.write(getRegister(Rd), Immediate);
                     case ZEROR -> {
                         // TODO: what happens if unused instructions are used
                     }
@@ -362,13 +362,13 @@ public class Processor {
                 switch (getInstructionFormat()) {
                     case ONER -> result = ALU.add(PC, Immediate);
                     case THREER -> {
-                        alu.setOp1(Rs1);
-                        alu.setOp2(Rs2);
+                        alu.setOp1(getRegister(Rs1));
+                        alu.setOp2(getRegister(Rs2));
                         result = (alu.doBooleanOperation(op)) ? ALU.add(PC, Immediate) : PC;
                     }
                     case TWOR -> {
-                        alu.setOp1(Rs1);
-                        alu.setOp2(Rd);
+                        alu.setOp1(getRegister(Rs1));
+                        alu.setOp2(getRegister(Rd));
                         result = (alu.doBooleanOperation(op)) ? ALU.add(PC, Immediate) : PC;
                     }
                     case ZEROR -> result = Immediate;
