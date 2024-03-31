@@ -36,9 +36,9 @@ public class ProcessorTests {
      * ------+-----+----+-----+-----+------------+-------------+-----+----------+---------
      * 3R    |yes  |yes |yes  |yes  |yes         |yes          |yes  |yes       |yes
      *
-     * copy | halt
+     *  copy | halt
      * ------+------
-     * yes | yes
+     *   yes | yes
      */
     // @formatter:on
 
@@ -564,4 +564,49 @@ public class ProcessorTests {
         System.out.println(processor.getRegister(1).getSigned());
         assertEquals(Integer.MAX_VALUE, processor.getRegister(6).getSigned());
     }
+
+    // Advanced instrructions
+    // @formatter:off
+    /* 
+     * format/type | 3R | 2R | 1R | 0R 
+     * ------------+----+----+----+----
+     *  branch     | no | no | no | no 
+     * ------------+----+----+----+----
+     *  call       | no | no | no | no 
+     * ------------+----+----+----+----
+     *  push       | no | no | no | N/A
+     * ------------+----+----+----+----
+     *  load       | no | no | no | no 
+     * ------------+----+----+----+----
+     *  store      | no | no | no | N/A
+     * ------------+----+----+----+----
+     *  pop        | no | no | no | no 
+     */
+    /*
+     * push
+     * if/op | and | or | xor | not | left shift | right shift | add | subtract | multiply
+     * ------+-----+----+-----+-----+------------+-------------+-----+----------+---------
+     * 1R    |no   |no  |no   |no   |no          |no           |no   |no        |no 
+     * ------+-----+----+-----+-----+------------+-------------+-----+----------+---------
+     * 2R    |no   |no  |no   |no   |no          |no           |no   |no        |no 
+     * ------+-----+----+-----+-----+------------+-------------+-----+----------+---------
+     * 3R    |no   |no  |no   |no   |no          |no           |no   |no        |no 
+     */
+    /*
+     * branch
+     * if/op | eq | ne | lt | gt | le | ge 
+     * ------+----+----+----+----+----+----
+     * 2R    | no | no | no | no | no | no 
+     * ------+----+----+----+----+----+----
+     * 3R    | no | no | no | no | no | no 
+     */
+    /*
+     * call
+     * if/op | eq | ne | lt | gt | le | ge 
+     * ------+----+----+----+----+----+----
+     * 2R    | no | no | no | no | no | no 
+     * ------+----+----+----+----+----+----
+     * 3R    | no | no | no | no | no | no 
+     */
+    // @formatter:on
 }

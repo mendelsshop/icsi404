@@ -293,13 +293,13 @@ public class Processor {
                 switch (getInstructionFormat()) {
                     // PEEK (does not modify sp)
                     case TWOR -> {
-                        var sub = ALU.add(Rs1, Immediate);
-                        result = MainMemory.read(ALU.add(SP, sub));
+                        var spRelativejump = ALU.add(Rs1, Immediate);
+                        result = MainMemory.read(ALU.sub(SP, spRelativejump));
                     }
                     // PEEK (does not modify sp)
                     case THREER -> {
-                        var sub = ALU.add(Rs1, Rs2);
-                        result = MainMemory.read(ALU.add(SP, sub));
+                        var spRelativejump = ALU.add(Rs1, Rs2);
+                        result = MainMemory.read(ALU.sub(SP, spRelativejump));
                     }
                     // POP (modifies SP)
                     case ONER ->
