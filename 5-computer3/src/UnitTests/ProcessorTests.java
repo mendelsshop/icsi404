@@ -2,6 +2,8 @@ package UnitTests;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.function.Consumer;
+
 import org.junit.Test;
 
 import Computer.Bit;
@@ -609,4 +611,134 @@ public class ProcessorTests {
      * 3R    | no | no | no | no | no | no 
      */
     // @formatter:on
+
+    public void ProcessorTestTemplate(String[] memory, Consumer<Processor> asserts) {
+        var processor = new Processor();
+        MainMemory.load(memory);
+        processor.run();
+        asserts.accept(processor);
+    }
+
+    @Test
+    public void BasicLoadDestOnly() {
+        ProcessorTestTemplate(new String[] {
+
+                // Instruction [type=LOAD, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=1]], immediate=2]
+                "00000000000000001001100000110001",
+                // Instruction [type=MATH, operation=NOP, registers=NoR[], immediate=0]
+                "00000000000000000000000000000000",
+                "11111111111111111111111111111000"
+
+        }, processor -> {
+            assertEquals(processor.getRegister(1).getSigned(), -8);
+
+        });
+    }
+
+    @Test
+    public void BasicLoadTwoR() {
+        ProcessorTestTemplate(new String[] {
+
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=1]], immediate=3]
+                "00000000000000001101100000100001",
+                // Instruction [type=LOAD, operation=NOP, registers=TwoR[Rs1=Register[number=1],
+                // Rd=Register[number=2]], immediate=1]
+                "00000000000010000101100001010011",
+                // Instruction [type=MATH, operation=NOP, registers=NoR[], immediate=0]
+                "00000000000000000000000000000000",
+                // Instruction [type=MATH, operation=NOP, registers=NoR[], immediate=0]
+                "00000000000000000000000000000000",
+                "00000000000000000000000000000111"
+        }, processor -> {
+            assertEquals(processor.getRegister(2).getSigned(), 7);
+
+        });
+    }
+
+    @Test
+    public void BasicLoadThreeR() {
+        ProcessorTestTemplate(new String[] {
+
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=1]], immediate=2]
+                "00000000000000001001100000100001",
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=7]], immediate=3]
+                "00000000000000001101100011100001",
+                // Instruction [type=LOAD, operation=NOP,
+                // registers=ThreeR[Rs1=Register[number=1], Rs2=Register[number=7],
+                // Rd=Register[number=31]], immediate=0]
+                "00000000000010011101101111110010",
+                // Instruction [type=MATH, operation=NOP, registers=NoR[], immediate=0]
+                "00000000000000000000000000000000",
+                // Instruction [type=MATH, operation=NOP, registers=NoR[], immediate=0]
+                "00000000000000000000000000000000",
+                "00000000000000000000000000010111"
+
+        }, processor -> {
+            assertEquals(processor.getRegister(31).getSigned(), 23);
+
+        });
+    }
+
+    @Test
+    public void BasicStoreDestOnly() {
+        ProcessorTestTemplate(new String[] {
+
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=22]], immediate=99]
+                "00000000000110001101101011000001",
+                // Instruction [type=STORE, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=22]], immediate=256]
+                "00000000010000000001101011010101",
+        }, processor -> {
+            assertEquals(MainMemory.read(new Word(99)).getSigned(), 256);
+
+        });
+    }
+
+    @Test
+    public void BasicStoreTwoR() {
+        ProcessorTestTemplate(new String[] {
+
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=1]], immediate=15]
+                "00000000000000111101100000100001",
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=27]], immediate=27]
+                "00000000000001101101101101100001",
+                // Instruction [type=STORE, operation=NOP,
+                // registers=TwoR[Rs1=Register[number=27], Rd=Register[number=1]], immediate=17]
+                "00000000100011101101100000110111",
+
+        }, processor -> {
+            assertEquals(MainMemory.read(new Word(32)).getSigned(), 27);
+
+        });
+    }
+
+    @Test
+    public void BasicStoreThreeR() {
+        ProcessorTestTemplate(new String[] {
+
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=4]], immediate=13]
+                "00000000000000110101100010000001",
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=29]], immediate=100]
+                "00000000000110010001101110100001",
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=16]], immediate=1122]
+                "00000001000110001001101000000001",
+                // Instruction [type=STORE, operation=NOP,
+                // registers=ThreeR[Rs1=Register[number=4], Rs2=Register[number=16],
+                // Rd=Register[number=29]], immediate=0]
+                "00000000001001000001101110110110",
+        }, processor -> {
+            assertEquals(MainMemory.read(new Word(113)).getSigned(), 1122);
+        });
+    }
+
 }
