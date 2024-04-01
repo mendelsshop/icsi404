@@ -54,9 +54,12 @@ public class Instruction {
 
     private static String intToBytes(int value, int length) {
         var valueString = Integer.toBinaryString(value);
-        var msb = value < 0 ? "1" : "0";
-        while (valueString.length() < length) {
-            valueString = msb + valueString;
+        var actualStart = valueString.length() - length;
+        if (actualStart > 0) {
+            valueString = valueString.substring(actualStart, valueString.length());
+        } else if (actualStart < 0) {
+            var msb = value < 0 ? "1" : "0";
+            valueString = msb.repeat(-1 * actualStart) + valueString;
         }
         return valueString;
     }
