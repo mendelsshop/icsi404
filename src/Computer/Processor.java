@@ -248,6 +248,7 @@ public class Processor {
                     }
                     case ZEROR -> {
                         push(PC);
+                        // System.out.println("calling to PC = "+ Immediate.getSigned());
                         result = Immediate;
                     }
                 }
@@ -286,6 +287,7 @@ public class Processor {
                         alu.setOp2(getRegister(Rs1));
                         alu.doOperation(op);
                         result = alu.getResult();
+                        // System.out.println(result.getSigned());
                     }
                 }
             }
