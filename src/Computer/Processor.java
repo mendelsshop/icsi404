@@ -412,8 +412,8 @@ public class Processor {
             }
             case STORE -> {
                 switch (getInstructionFormat()) {
-                    case TWOR -> MainMemory.write(result, Rs1);
-                    case THREER -> MainMemory.write(result, Rs2);
+                    case TWOR -> MainMemory.write(result, getRegister(Rs1));
+                    case THREER -> MainMemory.write(result, getRegister(Rs2));
                     default -> {
                     }
                 }
