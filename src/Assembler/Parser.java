@@ -43,13 +43,13 @@ public class Parser {
                                         parseInstruction(InstructionType.BRANCH, Optional.of(Parser::isBooleanOperator),
                                                         Optional.empty(), Optional.empty(), Optional.of(true),
                                                         Optional.of(true)));
-                        put(TokenType.CALL,
+                        put(TokenType.CALLIF,
                                         parseInstruction(InstructionType.CALL, Optional.of(Parser::isBooleanOperator),
                                                         Optional.empty(), Optional.empty(), Optional.of(true),
                                                         Optional.of(true)));
                         put(TokenType.JUMP, parseInstruction(InstructionType.BRANCH, Optional.empty(),
                                         Optional.of(true), Optional.of(true), Optional.empty(), Optional.empty()));
-                        put(TokenType.CALLIF, parseInstruction(InstructionType.CALL, Optional.empty(),
+                        put(TokenType.CALL, parseInstruction(InstructionType.CALL, Optional.empty(),
                                         Optional.of(true), Optional.of(true), Optional.empty(), Optional.empty()));
                         put(TokenType.PUSH, parseInstruction(InstructionType.PUSH, Optional.of(Parser::isMathOperator),
                                         Optional.empty(), Optional.of(true), Optional.of(false), Optional.of(false)));
@@ -113,20 +113,19 @@ public class Parser {
         /*     */ public Supplier<Result<Instruction, ParseError>> parseInstruction(InstructionType type,
                         Optional<Function<Token, Boolean>> operator, Optional<Boolean> NoR, Optional<Boolean> DestOnly,
                         Optional<Boolean> TwoR, Optional<Boolean> ThreeR) {
+                Function<Boolean, Function<Instruction, Result<Instruction, ParseError>>> validateImmediate = immediateEnabled->  instruction  ->  immediateEnabled ? parseNumber().map(number -> instruction.immediate(number)) :  Result.Ok.ok( instruction) ;
+                Function<RegisterFormat, Function<Instruction, Instruction>> setInstructionRegisters = registers -> instruction -> instruction.registers(registers);
                 Function<Optional<Boolean>, Function<RegisterFormat, Function<Instruction, Result<Instruction, ParseError>>>> validateRegister = (
                                 allowed) -> registers -> instruction -> allowed
-                                                .<Result<Instruction, ParseError>>map(hasImmediate -> hasImmediate
-                                                                ? parseNumber().<Instruction>map(n -> instruction
-                                                                                .immediate(n).registers(registers))
-                                                                : Ok.ok(instruction.registers(registers)))
-                                                .orElse(Err.err(new ParseError()));
-                Function<Instruction, Result<Instruction, ParseError>> parseRegisters = instruction -> (parseRegisters()
-                                .flatMap(registers -> validateRegister
-                                                .apply(registers instanceof NoR ? NoR
-                                                                : registers instanceof DestOnly ? DestOnly
+                                                .map(validateImmediate).orElse(x -> Ok.ok(x)).apply(instruction).map(setInstructionRegisters.apply(registers));
+                Function<Instruction, Result<Instruction, ParseError>> parseRegisters = instruction ->  ((Function<RegisterFormat, Result<Instruction, ParseError>>) registers -> 
+                                                validateRegister
+                                                .apply(
+                                                registers instanceof NoR ? NoR :
+                                                registers instanceof DestOnly ? DestOnly
                                                                                 : registers instanceof TwoR ? TwoR
                                                                                                 : ThreeR)
-                                                .apply(registers).apply(instruction)));
+                                                .apply(registers).apply(instruction)).apply(parseRegisters());
                 return () -> operator.<Function<Instruction, Result<Instruction, ParseError>>>map(
                                 operatorValidator -> instruction -> (resultToOptional(() -> tokens.Remove(),
                                                 new ParseError("could not get math op"))
@@ -136,10 +135,10 @@ public class Parser {
                                 .apply(Instruction.buildWithType(type)).flatMap(parseRegisters);
         }
 
-        public Result<RegisterFormat, ParseError> parseRegisters() {
+        public RegisterFormat parseRegisters() {
                 return parseRegister().<RegisterFormat>map(r1 -> parseRegister().map(r2 -> parseRegister()
-                                .<RegisterFormat>map(r3 -> new ThreeR(r1, r2, r3)).or(new TwoR(r1, r2)))
-                                .or(new DestOnly(r1)));
+                                .<RegisterFormat>map(r3 -> new ThreeR(r1, r2, r3)).orElse(new TwoR(r1, r2)))
+                                .orElse(new DestOnly(r1))).orElse(() -> new NoR());
         }
 
         public Result<Register, ParseError> parseRegister() {

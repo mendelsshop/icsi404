@@ -2,6 +2,7 @@ package Assembler;
 
 // import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 public sealed interface Result<T, E> permits Result.Ok, Result.Err {
 
@@ -37,12 +38,39 @@ public sealed interface Result<T, E> permits Result.Ok, Result.Err {
         }
 
         @Override
-        public T or(T r1) {
+        public T orElse(T r1) {
             return ok;
         }
 
         public T getValue() {
             return ok;
+        }
+
+        // @Override
+        // public Result<T, E> fromOptional(Optional<T> value, E orElse) {
+        // throw new UnsupportedOperationException("Unimplemented method
+        // 'fromOptional'");
+        // }
+
+        // @Override
+        // public Result<T, E> fromOptional(Optional<T> value, Supplier<E> orElse) {
+        // throw new UnsupportedOperationException("Unimplemented method
+        // 'fromOptional'");
+        // }
+
+        @Override
+        public T orElse(Supplier<T> r1) {
+            return ok;
+        }
+
+        @Override
+        public Result<T, E> or(Supplier<Result<T, E>> or) {
+            return this;
+        }
+
+        @Override
+        public Result<T, E> or(Result<T, E> or) {
+            return this;
         }
     }
 
@@ -76,8 +104,35 @@ public sealed interface Result<T, E> permits Result.Ok, Result.Err {
         }
 
         @Override
-        public T or(T r1) {
+        public T orElse(T r1) {
             return r1;
+        }
+
+        // @Override
+        // public Result<T, E> fromOptional(Optional<T> value, E orElse) {
+        // throw new UnsupportedOperationException("Unimplemented method
+        // 'fromOptional'");
+        // }
+
+        // @Override
+        // public Result<T, E> fromOptional(Optional<T> value, Supplier<E> orElse) {
+        // throw new UnsupportedOperationException("Unimplemented method
+        // 'fromOptional'");
+        // }
+
+        @Override
+        public T orElse(Supplier<T> r1) {
+            return r1.get();
+        }
+
+        @Override
+        public Result<T, E> or(Supplier<Result<T, E>> or) {
+            return or.get();
+        }
+
+        @Override
+        public Result<T, E> or(Result<T, E> or) {
+            return or;
         }
     }
 
@@ -87,10 +142,18 @@ public sealed interface Result<T, E> permits Result.Ok, Result.Err {
 
     // public Result<T, E> fromOptional(Optional<T> value, E orElse);
 
+    // public Result<T, E> fromOptional(Optional<T> value, Supplier<E> orElse);
+
     public <U> Result<U, E> flatMap(Function<T, Result<U, E>> mapper);
 
     public Result<T, E> filterOrErr(Function<T, Boolean> filter, E orElse);
 
-    public T or(T r1);
+    public T orElse(T r1);
+
+    public T orElse(Supplier<T> r1);
+
+    public Result<T, E> or(Supplier<Result<T, E>> or);
+
+    public Result<T, E> or(Result<T, E> or);
 
 }
