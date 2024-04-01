@@ -14,10 +14,10 @@ public class ALU {
 
     private Operation getOp(Bit[] op) {
         int res = 0;
-        res += op[0].getValue() ? (int) Math.pow(2, 0) : 0;
-        res += op[1].getValue() ? (int) Math.pow(2, 1) : 0;
-        res += op[2].getValue() ? (int) Math.pow(2, 2) : 0;
-        res += op[3].getValue() ? (int) Math.pow(2, 3) : 0;
+        res += op[0].getValue() ? (int) Math.pow(2, 3) : 0;
+        res += op[1].getValue() ? (int) Math.pow(2, 2) : 0;
+        res += op[2].getValue() ? (int) Math.pow(2, 1) : 0;
+        res += op[3].getValue() ? (int) Math.pow(2, 0) : 0;
         return switch (res) {
             case 0 -> Operation.EQ;
             case 1 -> Operation.NEQ;
@@ -86,7 +86,7 @@ public class ALU {
             case ADD ->
                 result = add(op1, op2);
             case SUB -> {
-                result = add(op1, op2);
+                result = sub(op1, op2);
             }
             case MUL ->
                 result = mul(op1, op2);
