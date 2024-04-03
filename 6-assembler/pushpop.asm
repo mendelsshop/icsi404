@@ -9,4 +9,5 @@ push mul R3 R4
 push mul R3 R4
 push mul R3 R4
 pop R5
-peek R5 R6 2
+copy R3 3
+peek R3 R6 0

@@ -293,18 +293,21 @@ public class Processor {
             }
             // TODO: should we detect overflow
             case POP -> {
+                // although the SIA32 specfies that we for 2r/3r we do the math and the subtract from sp, 
+                // but in class we said that since stack grows up that peeking should be bigger than sp to peek
+                // we use
                 switch (getInstructionFormat()) {
                     // PEEK (does not modify sp)
                     case TWOR -> {
                         var spRelativejump = ALU.add(getRegister(Rs1), Immediate);
-                        Word address = ALU.sub(SP, spRelativejump);
+                        Word address = ALU.add(SP, spRelativejump);
                         // System.out.println("peeking "+address.getSigned());
                         result = MainMemory.read(address);
                     }
                     // PEEK (does not modify sp)
                     case THREER -> {
                         var spRelativejump = ALU.add(getRegister(Rs1), getRegister(Rs2));
-                        result = MainMemory.read(ALU.sub(SP, spRelativejump));
+                        result = MainMemory.read(ALU.add(SP, spRelativejump));
                     }
                     // POP (modifies SP)
                     case ONER ->
