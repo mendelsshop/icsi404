@@ -5,8 +5,8 @@ import static Utils.Utils.*;
 import java.util.function.Function;
 
 public class Processor {
-    private Word PC = new Word(new Bit[32]);
-    private Word SP = new Word(new Bit[32]);
+    private Word PC = new Word(0);
+    private Word SP = new Word(1024);
     private Word currentInstruction = new Word(new Bit[32]);
     private Bit halted = new Bit(false);
 
@@ -291,12 +291,15 @@ public class Processor {
                     }
                 }
             }
+            // TODO: should we detect overflow
             case POP -> {
                 switch (getInstructionFormat()) {
                     // PEEK (does not modify sp)
                     case TWOR -> {
                         var spRelativejump = ALU.add(getRegister(Rs1), Immediate);
-                        result = MainMemory.read(ALU.sub(SP, spRelativejump));
+                        Word address = ALU.sub(SP, spRelativejump);
+                        // System.out.println("peeking "+address.getSigned());
+                        result = MainMemory.read(address);
                     }
                     // PEEK (does not modify sp)
                     case THREER -> {
@@ -321,6 +324,7 @@ public class Processor {
                         alu.setOp1(getRegister(Rd));
                         alu.setOp2(getRegister(Rs1));
                         alu.doOperation(op);
+                        // System.out.println(alu.getResult());
                         result = alu.getResult();
                         SP.decrement();
                     }
