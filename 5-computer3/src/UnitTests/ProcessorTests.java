@@ -576,13 +576,13 @@ public class ProcessorTests {
      * ------------+----+----+----+----
      *  call       | no | no | yes| yes
      * ------------+----+----+----+----
-     *  push       | no | no | no | N/A
+     *  push       | no | yes| no | N/A
      * ------------+----+----+----+----
      *  load       | yes| yes| yes| yes
      * ------------+----+----+----+----
      *  store      | yes| yes| yes| N/A
      * ------------+----+----+----+----
-     *  pop        | no | no | no | no 
+     *  pop        | no | yes| yes| N/A 
      */
     /*
      * push
@@ -590,7 +590,7 @@ public class ProcessorTests {
      * ------+-----+----+-----+-----+------------+-------------+-----+----------+---------
      * 1R    |no   |no  |no   |no   |no          |no           |no   |no        |no 
      * ------+-----+----+-----+-----+------------+-------------+-----+----------+---------
-     * 2R    |no   |no  |no   |no   |no          |no           |no   |no        |no 
+     * 2R    |no   |no  |no   |no   |no          |no           |no   |yes       |yes
      * ------+-----+----+-----+-----+------------+-------------+-----+----------+---------
      * 3R    |no   |no  |no   |no   |no          |no           |no   |no        |no 
      */
@@ -851,4 +851,54 @@ public class ProcessorTests {
 
         });
     }
+
+    @Test
+    public void BasicPushPop1() {
+        ProcessorTestTemplate(new String[] {
+
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=1]], immediate=10]
+                "00000000000000101001100000100001",
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=2]], immediate=15]
+                "00000000000000111101100001000001",
+                // Instruction [type=PUSH, operation=SUB, registers=TwoR[Rs1=Register[number=1],
+                // Rd=Register[number=2]], immediate=0]
+                "00000000000000000111110001001111",
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=3]], immediate=5]
+                "00000000000000010101100001100001",
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=4]], immediate=16]
+                "00000000000001000001100010000001",
+                // Instruction [type=MATH, operation=SUB,
+                // registers=ThreeR[Rs1=Register[number=2], Rs2=Register[number=4],
+                // Rd=Register[number=4]], immediate=0]
+                "00000000000100010011110010000010",
+                // Instruction [type=PUSH, operation=MUL, registers=TwoR[Rs1=Register[number=3],
+                // Rd=Register[number=4]], immediate=0]
+                "00000000000000001101110010001111",
+                // Instruction [type=PUSH, operation=MUL, registers=TwoR[Rs1=Register[number=3],
+                // Rd=Register[number=4]], immediate=0]
+                "00000000000000001101110010001111",
+                // Instruction [type=PUSH, operation=MUL, registers=TwoR[Rs1=Register[number=3],
+                // Rd=Register[number=4]], immediate=0]
+                "00000000000000001101110010001111",
+                // Instruction [type=PUSH, operation=MUL, registers=TwoR[Rs1=Register[number=3],
+                // Rd=Register[number=4]], immediate=0]
+                "00000000000000001101110010001111",
+                // Instruction [type=POP, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=5]], immediate=0]
+                "00000000000000000001100010111001",
+                // Instruction [type=POP, operation=NOP, registers=TwoR[Rs1=Register[number=5],
+                // Rd=Register[number=6]], immediate=2]
+                "00000000000100010101100011011011",
+        }, processor -> {
+            assertEquals(processor.getRegister(5).getSigned(), -5);
+            assertEquals(processor.getRegister(4).getSigned(), -1);
+            assertEquals(processor.getRegister(6).getSigned(), 5);
+
+        });
+    }
+
 }
