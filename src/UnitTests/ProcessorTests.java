@@ -576,23 +576,23 @@ public class ProcessorTests {
      * ------------+----+----+----+----
      *  call       | no | no | yes| yes
      * ------------+----+----+----+----
-     *  push       | no | yes| no | N/A
+     *  push       | yes| yes| yes| N/A
      * ------------+----+----+----+----
      *  load       | yes| yes| yes| yes
      * ------------+----+----+----+----
      *  store      | yes| yes| yes| N/A
      * ------------+----+----+----+----
-     *  pop        | no | yes| yes| N/A 
+     *  pop        | yes| yes| yes| N/A 
      */
     /*
      * push
      * if/op | and | or | xor | not | left shift | right shift | add | subtract | multiply
      * ------+-----+----+-----+-----+------------+-------------+-----+----------+---------
-     * 1R    |no   |no  |no   |no   |no          |no           |no   |no        |no 
+     * 1R    |yes  |no  |no   |yes  |no          |no           |no   |no        |no 
      * ------+-----+----+-----+-----+------------+-------------+-----+----------+---------
      * 2R    |no   |no  |no   |no   |no          |no           |no   |yes       |yes
      * ------+-----+----+-----+-----+------------+-------------+-----+----------+---------
-     * 3R    |no   |no  |no   |no   |no          |no           |no   |no        |no 
+     * 3R    |yes  |no  |no   |no   |no          |no           |no   |no        |no 
      */
     /*
      * branch
@@ -890,9 +890,12 @@ public class ProcessorTests {
                 // Instruction [type=POP, operation=NOP,
                 // registers=DestOnly[Rd=Register[number=5]], immediate=0]
                 "00000000000000000001100010111001",
-                // Instruction [type=POP, operation=NOP, registers=TwoR[Rs1=Register[number=5],
-                // Rd=Register[number=6]], immediate=2]
-                "00000000000100010101100011011011",
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=3]], immediate=3]
+                "00000000000000001101100001100001",
+                // Instruction [type=POP, operation=NOP, registers=TwoR[Rs1=Register[number=3],
+                // Rd=Register[number=6]], immediate=0]
+                "00000000000000001101100011011011",
         }, processor -> {
             assertEquals(processor.getRegister(5).getSigned(), -5);
             assertEquals(processor.getRegister(4).getSigned(), -1);
@@ -901,4 +904,47 @@ public class ProcessorTests {
         });
     }
 
+    @Test
+    public void BasicPushPop2() {
+        ProcessorTestTemplate(new String[] {
+
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=10]], immediate=5]
+                "00000000000000010101100101000001",
+                // Instruction [type=PUSH, operation=NOT,
+                // registers=DestOnly[Rd=Register[number=10]], immediate=4]
+                "00000000000000010010110101001101",
+                // Instruction [type=PUSH, operation=AND,
+                // registers=DestOnly[Rd=Register[number=0]], immediate=1]
+                "00000000000000000110000000001101",
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=2]], immediate=56]
+                "00000000000011100001100001000001",
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=3]], immediate=3]
+                "00000000000000001101100001100001",
+                // Instruction [type=PUSH, operation=AND,
+                // registers=ThreeR[Rs1=Register[number=2], Rs2=Register[number=3],
+                // Rd=Register[number=0]], immediate=0]
+                "00000000000100001110000000001110",
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=3]], immediate=2]
+                "00000000000000001001100001100001",
+                // Instruction [type=POP, operation=NOP,
+                // registers=ThreeR[Rs1=Register[number=3], Rs2=Register[number=0],
+                // Rd=Register[number=5]], immediate=0]
+                "00000000000110000001100010111010",
+                // Instruction [type=POP, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=6]], immediate=0]
+                "00000000000000000001100011011001",
+                // Instruction [type=POP, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=7]], immediate=0]
+                "00000000000000000001100011111001",
+        }, processor -> {
+            assertEquals(processor.getRegister(5).getSigned(), -6);
+            assertEquals(processor.getRegister(7).getSigned(), 0);
+            assertEquals(processor.getRegister(6).getSigned(), 0);
+
+        });
+    }
 }
