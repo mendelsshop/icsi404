@@ -76,14 +76,20 @@ public class Lexer {
     }
 
     private boolean absorb(char needle) {
-        Function<Character, Boolean> checkWhiteSpace = ((peeked) -> peeked == needle || peeked == '\r');
+        Function<Character, Boolean> checkWhiteSpace = ((peeked) -> peeked == needle || peeked == '\r'
+                || (needle == '\n' && peeked == ';'));
         var whiteSpaceFound = false;
         while (!source.IsDone()
                 && checkWhiteSpace
                         .apply(source.Peek())) {
 
-            if (source.GetChar() == '\n') {
+            char getChar = source.GetChar();
+            if (getChar == '\n') {
                 currentLine++;
+            } else if (getChar == ';') {
+                // absorb comments
+                while (!source.IsDone() && !(source.GetChar() == '\n')) {
+                }
             } else {
                 position++;
             }
