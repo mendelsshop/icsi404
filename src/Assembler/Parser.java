@@ -13,17 +13,20 @@ import Assembler.Token.TokenType;
 public class Parser {
         /* * TODO: better error messages * TODO: stuff besides math */ public class ParseError {
                 @Override
+
                 public String toString() {
-                        return "ParseError [error=" + error + "]";
+                        return "ParseError [error=" + error + " in token " +  lastToken+"]";
                 }
 
                 private String error = "";
-
+                private Optional<Token> lastToken;
                 public ParseError(String error) {
+                this();
                         this.error = error;
                 }
 
                 public ParseError() {
+                                                lastToken  = currentToken;
                 }
         }
 
@@ -70,6 +73,7 @@ public class Parser {
                                         .map(n -> Instruction.buildWithType(InstructionType.POP).immediate(n)));
                 }
         };
+		private Optional<Token> currentToken = Optional.empty() ;
 
         public Parser(LinkedList<Token> tokens) {
                 this.tokens = new TokenHandler(tokens);
@@ -127,7 +131,7 @@ public class Parser {
                                                                                                 : ThreeR)
                                                 .apply(registers).apply(instruction)).apply(parseRegisters());
                 return () -> operator.<Function<Instruction, Result<Instruction, ParseError>>>map(
-                                operatorValidator -> instruction -> (resultToOptional(() -> tokens.Remove(),
+                                operatorValidator -> instruction -> (resultToOptional(() -> Remove(),
                                                 new ParseError("could not get math op"))
                                                 .filterOrErr(operatorValidator, new ParseError("not a math op"))
                                                 .map(Parser::tokenToOperator).map(op -> instruction.operation(op))))
@@ -135,33 +139,50 @@ public class Parser {
                                 .apply(Instruction.buildWithType(type)).flatMap(parseRegisters);
         }
 
-        public RegisterFormat parseRegisters() {
+        private Optional<Token> Remove() {
+                var token = tokens.Remove();
+                                if (token.isPresent()) {
+                                currentToken = token;
+                                }
+                                return token;
+		}
+
+		public RegisterFormat parseRegisters() {
                 return parseRegister().<RegisterFormat>map(r1 -> parseRegister().map(r2 -> parseRegister()
                                 .<RegisterFormat>map(r3 -> new ThreeR(r1, r2, r3)).orElse(new TwoR(r1, r2)))
                                 .orElse(new DestOnly(r1))).orElse(() -> new NoR());
         }
 
         public Result<Register, ParseError> parseRegister() {
-                return resultToOptional(() -> tokens.MatchAndRemove(TokenType.REGISTER),
+                return resultToOptional(() -> MatchAndRemove(TokenType.REGISTER),
                                 new ParseError("could not parse register")).map(r -> new Register(r.getValue().get()));
         }
 
+
         public Result<Integer, ParseError> parseNumber() {
-                return resultToOptional(() -> tokens.MatchAndRemove(TokenType.VALUE),
+                return resultToOptional(() -> MatchAndRemove(TokenType.VALUE),
                                 new ParseError("could not parse number")).map(r -> r.getValue().get());
         }
 
-        private static Result<Token, ParseError> resultToOptional(Supplier<Optional<Token>> token, ParseError orElse) {
+        private Optional<Token> MatchAndRemove(TokenType value) {
+                var token = tokens.MatchAndRemove(value);
+                                if (token.isPresent()) {
+                                currentToken = token;
+                                }
+                                return token;
+		}
+
+		private static Result<Token, ParseError> resultToOptional(Supplier<Optional<Token>> token, ParseError orElse) {
                 return token.get().map(t -> Ok.<Token, ParseError>ok(t)).orElse(Err.<Token, ParseError>err(orElse));
         }
 
         public Result<Instruction, ParseError> parseLine() {
-                return resultToOptional(() -> tokens.Remove(), new ParseError("could not find new start token"))
-                                .map(token -> parsers.get(token.getType()))
-                                .flatMap(parser -> parser == null
-                                                ? Err.<Instruction, ParseError>err(new ParseError(
-                                                                "could not find parser for that keyword"))
-                                                : parser.get());
+                return resultToOptional(() -> Remove(), new ParseError("could not find new start token"))
+                                .map(token -> parsers.getOrDefault(token.getType(), () -> Err.<Instruction, ParseError>err(new ParseError(
+                                                                "could not find parser for that keyword " + token))
+ ))
+                                .flatMap(parser -> 
+                                                 parser.get());
         }
 
         public Result<LinkedList<Instruction>, ParseError> parse() {
@@ -173,7 +194,7 @@ public class Parser {
                                 }
                                 case Ok<Instruction, ParseError> o -> result.add(o.getValue());
                         }
-                } while (tokens.MatchAndRemove(TokenType.NEWLINE).isPresent() && tokens.MoreTokens());
+                } while (MatchAndRemove(TokenType.NEWLINE).isPresent() && tokens.MoreTokens());
                 if (tokens.MoreTokens()) {
                         return Err.err(new ParseError("found extra tokens"));
                 } else {
