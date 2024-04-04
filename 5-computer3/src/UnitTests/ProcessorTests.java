@@ -588,7 +588,7 @@ public class ProcessorTests {
      * push
      * if/op | and | or | xor | not | left shift | right shift | add | subtract | multiply
      * ------+-----+----+-----+-----+------------+-------------+-----+----------+---------
-     * 1R    |yes  |no  |no   |yes  |no          |no           |no   |no        |no 
+     * 1R    |yes  |no  |no   |yes  |no          |no           |no   |yes       |no 
      * ------+-----+----+-----+-----+------------+-------------+-----+----------+---------
      * 2R    |no   |no  |no   |no   |no          |no           |no   |yes       |yes
      * ------+-----+----+-----+-----+------------+-------------+-----+----------+---------
@@ -598,7 +598,7 @@ public class ProcessorTests {
      * branch
      * if/op | eq | ne | lt | gt | le | ge 
      * ------+----+----+----+----+----+----
-     * 2R    | yes| yes| no | no | no | no 
+     * 2R    | yes| yes| yes| no | yes| yes
      * ------+----+----+----+----+----+----
      * 3R    | no | no | no | yes| no | no 
      */
@@ -1174,5 +1174,103 @@ public class ProcessorTests {
             assertEquals(40320, proccesor.getRegister(3).getSigned());
         });
 
+    }
+
+    @Test
+    public void IterativeFibonacci() {
+        ProcessorTestTemplate(new String[] {
+
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=1]], immediate=6]
+                "00000000000000011001100000100001",
+                // Instruction [type=CALL, operation=NOP, registers=NoR[], immediate=3]
+                "00000000000000000000000001101000",
+                // Instruction [type=MATH, operation=NOP, registers=NoR[], immediate=0]
+                "00000000000000000000000000000000",
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=2]], immediate=1]
+                "00000000000000000101100001000001",
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=3]], immediate=2]
+                "00000000000000001001100001100001",
+                // Instruction [type=BRANCH, operation=LE,
+                // registers=TwoR[Rs1=Register[number=2], Rd=Register[number=1]], immediate=2]
+                "00000000000100001001010000100111",
+                // Instruction [type=MATH, operation=ADD, registers=TwoR[Rs1=Register[number=4],
+                // Rd=Register[number=1]], immediate=0]
+                "00000000000000010011100000100011",
+                // Instruction [type=LOAD, operation=NOP, registers=NoR[], immediate=0]
+                "00000000000000000000000000010000",
+                // Instruction [type=MATH, operation=SUB,
+                // registers=ThreeR[Rs1=Register[number=1], Rs2=Register[number=2],
+                // Rd=Register[number=1]], immediate=0]
+                "00000000000010001011110000100010",
+                // Instruction [type=CALL, operation=NOP, registers=NoR[], immediate=5]
+                "00000000000000000000000010101000",
+                // Instruction [type=MATH, operation=SUB,
+                // registers=ThreeR[Rs1=Register[number=1], Rs2=Register[number=2],
+                // Rd=Register[number=1]], immediate=0]
+                "00000000000010001011110000100010",
+                // Instruction [type=CALL, operation=NOP, registers=NoR[], immediate=5]
+                "00000000000000000000000010101000",
+                // Instruction [type=MATH, operation=ADD,
+                // registers=ThreeR[Rs1=Register[number=1], Rs2=Register[number=3],
+                // Rd=Register[number=1]], immediate=0]
+                "00000000000010001111100000100010",
+                // Instruction [type=LOAD, operation=NOP, registers=NoR[], immediate=0]
+                "00000000000000000000000000010000",
+        }, processor -> {
+            assertEquals(8, processor.getRegister(4).getSigned());
+        });
+
+    }
+
+    @Test
+    public void RecursiveFibonacci() {
+        ProcessorTestTemplate(new String[] {
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=1]], immediate=10]
+                "00000000000000101001100000100001",
+                // Instruction [type=CALL, operation=NOP, registers=NoR[], immediate=3]
+                "00000000000000000000000001101000",
+                // Instruction [type=MATH, operation=NOP, registers=NoR[], immediate=0]
+                "00000000000000000000000000000000",
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=2]], immediate=2]
+                "00000000000000001001100001000001",
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=4]], immediate=1]
+                "00000000000000000101100010000001",
+                // Instruction [type=BRANCH, operation=GE,
+                // registers=TwoR[Rs1=Register[number=1], Rd=Register[number=2]], immediate=2]
+                "00000000000100000100110001000111",
+                // Instruction [type=MATH, operation=ADD, registers=TwoR[Rs1=Register[number=1],
+                // Rd=Register[number=3]], immediate=0]
+                "00000000000000000111100001100011",
+                // Instruction [type=LOAD, operation=NOP, registers=NoR[], immediate=0]
+                "00000000000000000000000000010000",
+                // Instruction [type=PUSH, operation=ADD,
+                // registers=DestOnly[Rd=Register[number=1]], immediate=0]
+                "00000000000000000011100000101101",
+                // Instruction [type=MATH, operation=SUB,
+                // registers=ThreeR[Rs1=Register[number=1], Rs2=Register[number=4],
+                // Rd=Register[number=1]], immediate=0]
+                "00000000000010010011110000100010",
+                // Instruction [type=CALL, operation=NOP, registers=NoR[], immediate=5]
+                "00000000000000000000000010101000",
+                // Instruction [type=MATH, operation=SUB,
+                // registers=ThreeR[Rs1=Register[number=1], Rs2=Register[number=4],
+                // Rd=Register[number=1]], immediate=0]
+                "00000000000010010011110000100010",
+                // Instruction [type=CALL, operation=NOP, registers=NoR[], immediate=5]
+                "00000000000000000000000010101000",
+                // Instruction [type=POP, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=1]], immediate=0]
+                "00000000000000000001100000111001",
+                // Instruction [type=LOAD, operation=NOP, registers=NoR[], immediate=0]
+                "00000000000000000000000000010000",
+        }, processor -> {
+            assertEquals(55, processor.getRegister(3).getSigned());
+        });
     }
 }
