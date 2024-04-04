@@ -48,21 +48,23 @@ public class Processor {
         IC = getNBits(3, 2);
         // decode based if
         switch (getInstructionFormat()) {
+            // we sign extend immediate because it could be negative and when we shift to
+            // obtain immediate we lose the sign bit being at the end
             // for immedieats there is no reason to mask as they are the last part of word
             case ZEROR -> {
                 // shift right by 5 to get the 27 bit immediate value
-                Immediate = currentInstruction.rightShift(5);
+                Immediate = currentInstruction.rightShift(5).signExtend(26);
             }
             case ONER -> {
                 Rd = getNBits(5, 5);
                 Function = getNBits(4, 10);
-                Immediate = currentInstruction.rightShift(14);
+                Immediate = currentInstruction.rightShift(14).signExtend(17);
             }
             case TWOR -> {
                 Rd = getNBits(5, 5);
                 Function = getNBits(4, 10);
                 Rs1 = getNBits(5, 14);
-                Immediate = currentInstruction.rightShift(19);
+                Immediate = currentInstruction.rightShift(19).signExtend(12);
             }
             case THREER -> {
 
@@ -70,7 +72,7 @@ public class Processor {
                 Function = getNBits(4, 10);
                 Rs2 = getNBits(5, 14);
                 Rs1 = getNBits(5, 19);
-                Immediate = currentInstruction.rightShift(24);
+                Immediate = currentInstruction.rightShift(24).signExtend(7);
             }
         }
     }
@@ -229,7 +231,7 @@ public class Processor {
                     case THREER -> {
                         alu.setOp1(getRegister(Rs1));
                         alu.setOp2(getRegister(Rs2));
-                        if (alu.doBooleanOperation(op)) {
+                        if (alu.doBooleanOperation(op).getValue()) {
                             push(PC);
                             result = ALU.add(getRegister(Rd), Immediate);
                         } else {
@@ -239,7 +241,7 @@ public class Processor {
                     case TWOR -> {
                         alu.setOp1(getRegister(Rs1));
                         alu.setOp2(getRegister(Rd));
-                        if (alu.doBooleanOperation(op)) {
+                        if (alu.doBooleanOperation(op).getValue()) {
                             push(PC);
                             result = ALU.add(PC, Immediate);
                         } else {
@@ -293,8 +295,10 @@ public class Processor {
             }
             // TODO: should we detect overflow
             case POP -> {
-                // although the SIA32 specfies that we for 2r/3r we do the math and the subtract from sp, 
-                // but in class we said that since stack grows up that peeking should be bigger than sp to peek
+                // although the SIA32 specfies that we for 2r/3r we do the math and the subtract
+                // from sp,
+                // but in class we said that since stack grows up that peeking should be bigger
+                // than sp to peek
                 // we use
                 switch (getInstructionFormat()) {
                     // PEEK (does not modify sp)
@@ -373,12 +377,12 @@ public class Processor {
                     case THREER -> {
                         alu.setOp1(getRegister(Rs1));
                         alu.setOp2(getRegister(Rs2));
-                        result = (alu.doBooleanOperation(op)) ? ALU.add(PC, Immediate) : PC;
+                        result = (alu.doBooleanOperation(op).getValue()) ? ALU.add(PC, Immediate) : PC;
                     }
                     case TWOR -> {
                         alu.setOp1(getRegister(Rs1));
                         alu.setOp2(getRegister(Rd));
-                        result = (alu.doBooleanOperation(op)) ? ALU.add(PC, Immediate) : PC;
+                        result = (alu.doBooleanOperation(op).getValue()) ? ALU.add(PC, Immediate) : PC;
                     }
                     case ZEROR -> result = Immediate;
                 }
