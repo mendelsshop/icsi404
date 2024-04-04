@@ -572,9 +572,9 @@ public class ProcessorTests {
     /* 
      * format/type | 3R | 2R | 1R | 0R 
      * ------------+----+----+----+----
-     *  branch     | no | no | yes| yes
+     *  branch     | yes| yes| yes| yes
      * ------------+----+----+----+----
-     *  call       | no | no | yes| yes
+     *  call       | yes| yes| yes| yes
      * ------------+----+----+----+----
      *  push       | yes| yes| yes| N/A
      * ------------+----+----+----+----
@@ -598,17 +598,17 @@ public class ProcessorTests {
      * branch
      * if/op | eq | ne | lt | gt | le | ge 
      * ------+----+----+----+----+----+----
-     * 2R    | no | no | no | no | no | no 
+     * 2R    | yes| no | no | no | no | no 
      * ------+----+----+----+----+----+----
-     * 3R    | no | no | no | no | no | no 
+     * 3R    | no | no | no | yes| no | no 
      */
     /*
      * call
      * if/op | eq | ne | lt | gt | le | ge 
      * ------+----+----+----+----+----+----
-     * 2R    | no | no | no | no | no | no 
+     * 2R    | no | yes| no | no | no | no 
      * ------+----+----+----+----+----+----
-     * 3R    | no | no | no | no | no | no 
+     * 3R    | no | no | yes| no | no | no 
      */
     // @formatter:on
 
@@ -945,6 +945,133 @@ public class ProcessorTests {
             assertEquals(processor.getRegister(7).getSigned(), 0);
             assertEquals(processor.getRegister(6).getSigned(), 0);
 
+        });
+    }
+
+    @Test
+    public void BasicBranchTwoR() {
+        ProcessorTestTemplate(new String[] {
+
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=1]], immediate=-1]
+                "11111111111111111101100000100001",
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=2]], immediate=-1]
+                "11111111111111111101100001000001",
+                // Instruction [type=BRANCH, operation=EQ,
+                // registers=TwoR[Rs1=Register[number=1], Rd=Register[number=2]], immediate=2]
+                "00000000000100000100000001000111",
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=3]], immediate=3]
+                "00000000000000001101100001100001",
+                // Instruction [type=MATH, operation=ADD, registers=TwoR[Rs1=Register[number=3],
+                // Rd=Register[number=1]], immediate=0]
+                "00000000000000001111100000100011",
+        }, processor -> {
+            assertEquals(processor.getRegister(1).getSigned(), -1);
+            assertEquals(processor.getRegister(2).getSigned(), -1);
+            assertEquals(processor.getRegister(3).getSigned(), 0);
+
+        });
+    }
+
+    @Test
+    public void BasicBranchThreeR() {
+        ProcessorTestTemplate(new String[] {
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=1]], immediate=7]
+                "00000000000000011101100000100001",
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=2]], immediate=8]
+                "00000000000000100001100001000001",
+                // Instruction [type=BRANCH, operation=GT,
+                // registers=ThreeR[Rs1=Register[number=1], Rs2=Register[number=2],
+                // Rd=Register[number=0]], immediate=3]
+                "00000011000010001001000000000110",
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=3]], immediate=-1]
+                "11111111111111111101100001100001",
+                // Instruction [type=MATH, operation=MUL,
+                // registers=ThreeR[Rs1=Register[number=1], Rs2=Register[number=3],
+                // Rd=Register[number=4]], immediate=0]
+                "00000000000010001101110010000010",
+                // Instruction [type=MATH, operation=NOP, registers=NoR[], immediate=0]
+                "00000000000000000000000000000000",
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=4]], immediate=5]
+                "00000000000000010101100010000001",
+        }, processor -> {
+            assertEquals(processor.getRegister(1).getSigned(), 7);
+            assertEquals(processor.getRegister(2).getSigned(), 8);
+            assertEquals(processor.getRegister(3).getSigned(), -1);
+            assertEquals(processor.getRegister(4).getSigned(), -7);
+
+        });
+    }
+
+    @Test
+    public void BasicCallTwoR() {
+        ProcessorTestTemplate(new String[] {
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=1]], immediate=5]
+                "00000000000000010101100000100001",
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=2]], immediate=6]
+                "00000000000000011001100001000001",
+                // Instruction [type=CALL, operation=NE, registers=TwoR[Rs1=Register[number=1],
+                // Rd=Register[number=2]], immediate=2]
+                "00000000000100000100010001001011",
+                // Instruction [type=MATH, operation=NOT,
+                // registers=ThreeR[Rs1=Register[number=31], Rs2=Register[number=0],
+                // Rd=Register[number=3]], immediate=0]
+                "00000000111110000010110001100010",
+                // Instruction [type=MATH, operation=NOP, registers=NoR[], immediate=0]
+                "00000000000000000000000000000000",
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=3]], immediate=2]
+                "00000000000000001001100001100001",
+                // Instruction [type=MATH, operation=LEFT_SHIFT,
+                // registers=ThreeR[Rs1=Register[number=1], Rs2=Register[number=3],
+                // Rd=Register[number=31]], immediate=0]
+                "00000000000010001111001111100010",
+                // Instruction [type=LOAD, operation=NOP, registers=NoR[], immediate=0]
+                "00000000000000000000000000010000",
+        }, processor -> {
+            assertEquals(processor.getRegister(1).getSigned(), 5);
+            assertEquals(processor.getRegister(2).getSigned(), 6);
+            assertEquals(processor.getRegister(3).getSigned(), -21);
+            assertEquals(processor.getRegister(31).getSigned(), 20);
+        });
+    }
+
+    @Test
+    public void BasicCallThreeR() {
+        ProcessorTestTemplate(new String[] {
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=1]], immediate=1]
+                "00000000000000000101100000100001",
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=2]], immediate=-3]
+                "11111111111111110101100001000001",
+                // Instruction [type=CALL, operation=LT,
+                // registers=ThreeR[Rs1=Register[number=2], Rs2=Register[number=1],
+                // Rd=Register[number=1]], immediate=4]
+                "00000100000100000100100000101010",
+                // Instruction [type=MATH, operation=OR, registers=TwoR[Rs1=Register[number=31],
+                // Rd=Register[number=2]], immediate=0]
+                "00000000000001111110010001000011",
+                // Instruction [type=MATH, operation=NOP, registers=NoR[], immediate=0]
+                "00000000000000000000000000000000",
+                // Instruction [type=MATH, operation=NOT,
+                // registers=ThreeR[Rs1=Register[number=2], Rs2=Register[number=0],
+                // Rd=Register[number=31]], immediate=0]
+                "00000000000100000010111111100010",
+                // Instruction [type=LOAD, operation=NOP, registers=NoR[], immediate=0]
+                "00000000000000000000000000010000",
+        }, processor -> {
+            assertEquals(processor.getRegister(1).getSigned(), 1);
+            assertEquals(processor.getRegister(2).getSigned(), -1);
+            assertEquals(processor.getRegister(31).getSigned(), 2);
         });
     }
 }

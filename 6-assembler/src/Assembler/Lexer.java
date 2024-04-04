@@ -40,7 +40,7 @@ public class Lexer {
             put("eq", TokenType.EQUAL);
             put("ne", TokenType.UNEQUAL);
             put("gt", TokenType.GREATER);
-            put("le", TokenType.LESS);
+            put("lt", TokenType.LESS);
             put("ge", TokenType.GREATEROREQUAL);
             put("le", TokenType.LESSOREQUAL);
             put("shift", TokenType.SHIFT);

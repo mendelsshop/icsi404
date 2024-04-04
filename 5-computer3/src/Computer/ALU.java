@@ -96,7 +96,7 @@ public class ALU {
 
     // TODO: do I have to use for equality ie op1 - op2 = 0
     // also can I use normal or for short circuitng
-    public static boolean notEquals(Word op1, Word op2) {
+    public static Bit notEquals(Word op1, Word op2) {
         var result = sub(op1, op2);
         return result.getBit(0)
                 .or(result.getBit(1))
@@ -129,45 +129,25 @@ public class ALU {
                 .or(result.getBit(28))
                 .or(result.getBit(29))
                 .or(result.getBit(30))
-                .or(result.getBit(31)).getValue();
-        // return
-        // op1.getBit(0).or(op2.getBit(0)).or(op1.getBit(1).or(op2.getBit(1))).or(op1.getBit(2).or(op2.getBit(2)))
-        // .or(op1.getBit(3).or(op2.getBit(3))).or(op1.getBit(4).or(op2.getBit(4)))
-        // .or(op1.getBit(5).or(op2.getBit(5))).or(op1.getBit(6).or(op2.getBit(6)))
-        // .or(op1.getBit(7).or(op2.getBit(7))).or(op1.getBit(8).or(op2.getBit(8)))
-        // .or(op1.getBit(9).or(op2.getBit(9))).or(op1.getBit(10).or(op2.getBit(10)))
-        // .or(op1.getBit(11).or(op2.getBit(11))).or(op1.getBit(12).or(op2.getBit(12)))
-        // .or(op1.getBit(13).or(op2.getBit(13))).or(op1.getBit(14).or(op2.getBit(14)))
-        // .or(op1.getBit(15).or(op2.getBit(15))).or(op1.getBit(16).or(op2.getBit(16)))
-        // .or(op1.getBit(17).or(op2.getBit(17))).or(op1.getBit(18).or(op2.getBit(18)))
-        // .or(op1.getBit(19).or(op2.getBit(19))).or(op1.getBit(20).or(op2.getBit(20)))
-        // .or(op1.getBit(21).or(op2.getBit(21))).or(op1.getBit(22).or(op2.getBit(22)))
-        // .or(op1.getBit(23).or(op2.getBit(23))).or(op1.getBit(24).or(op2.getBit(24)))
-        // .or(op1.getBit(25).or(op2.getBit(25))).or(op1.getBit(26).or(op2.getBit(26)))
-        // .or(op1.getBit(27).or(op2.getBit(27))).or(op1.getBit(28).or(op2.getBit(28)))
-        // .or(op1.getBit(29).or(op2.getBit(29))).or(op1.getBit(30).or(op2.getBit(30)))
-        // .or(op1.getBit(31).or(op2.getBit(31))).not().getValue();
+                .or(result.getBit(31));
     }
 
-    public boolean doBooleanOperation(Bit[] operation) {
+    public Bit doBooleanOperation(Bit[] operation) {
         // TODO: should bops be in alu?
         return switch (getOp(operation)) {
             case EQ ->
-                !notEquals(op1, op2);
+                notEquals(op1, op2).not();
             case NEQ ->
                 notEquals(op1, op2);
             case LT ->
-                sub(op1, op2).getBit(31).getValue();
+                sub(op1, op2).getBit(31);
             case GE ->
-                sub(op1, op2).getBit(31).not().getValue();
-            case GT -> {
-                Word dif = sub(op1, op2);
-                yield (dif.getBit(31).not().getValue() || !notEquals(op1, op2));
-            }
-            case LE -> {
-                Word dif = sub(op1, op2);
-                yield dif.getBit(31).getValue() || !notEquals(op1, op2);
-            }
+                sub(op1, op2).getBit(31).not();
+            case GT ->
+                sub(op2, op1).getBit(31);
+            case LE ->
+                sub(op2, op1).getBit(31).not();
+
             default -> throw new IllegalArgumentException("Unexpected value: " + getOp(operation));
         };
     }
