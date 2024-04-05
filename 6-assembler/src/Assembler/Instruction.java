@@ -1,6 +1,5 @@
 package Assembler;
 
-import java.util.HexFormat;
 import Assembler.Instruction.RegisterFormat.DestOnly;
 import Assembler.Instruction.RegisterFormat.NoR;
 import Assembler.Instruction.RegisterFormat.ThreeR;
