@@ -1,5 +1,7 @@
 package UnitTests;
 
+import static Utils.Utils.getFalse;
+import static Utils.Utils.getTrue;
 import static org.junit.Assert.assertEquals;
 
 import java.util.function.Consumer;
@@ -10,7 +12,6 @@ import Computer.Bit;
 import Computer.MainMemory;
 import Computer.Processor;
 import Computer.Word;
-import static Utils.Utils.*;
 
 public class ProcessorTests {
 
@@ -584,15 +585,16 @@ public class ProcessorTests {
      * ------------+----+----+----+----
      *  pop        | yes| yes| yes| N/A 
      */
+    // NOTE: although all of the instructions and operation combinations are not tested, all the operations are tested between all the instructions a few times, so since the instructions are part of the alu, different instruction shouldn't change what the operations do, thus why all the combinations are not all verified below
     /*
      * push
      * if/op | and | or | xor | not | left shift | right shift | add | subtract | multiply
      * ------+-----+----+-----+-----+------------+-------------+-----+----------+---------
-     * 1R    |yes  |no  |no   |yes  |no          |no           |no   |yes       |no 
+     * 1R    |yes  |no  |no   |yes  |no          |no           |yes  |yes       |no 
      * ------+-----+----+-----+-----+------------+-------------+-----+----------+---------
-     * 2R    |no   |no  |no   |no   |no          |no           |no   |yes       |yes
+     * 2R    |no   |yes |no   |no   |no          |no           |no   |yes       |yes
      * ------+-----+----+-----+-----+------------+-------------+-----+----------+---------
-     * 3R    |yes  |no  |no   |no   |no          |no           |no   |no        |no 
+     * 3R    |yes  |no  |yes  |no   |yes         |no           |no   |no        |no 
      */
     /*
      * branch
@@ -600,15 +602,15 @@ public class ProcessorTests {
      * ------+----+----+----+----+----+----
      * 2R    | yes| yes| yes| no | yes| yes
      * ------+----+----+----+----+----+----
-     * 3R    | no | no | no | yes| no | no 
+     * 3R    | no | no | no | yes| yes| no 
      */
     /*
      * call
      * if/op | eq | ne | lt | gt | le | ge 
      * ------+----+----+----+----+----+----
-     * 2R    | no | yes| no | no | no | no 
+     * 2R    | yes| yes| no | yes| no | no 
      * ------+----+----+----+----+----+----
-     * 3R    | no | no | yes| no | no | no 
+     * 3R    | yes| no | yes| yes| no | yes
      */
     // @formatter:on
 
@@ -1194,11 +1196,11 @@ public class ProcessorTests {
                 // registers=DestOnly[Rd=Register[number=3]], immediate=2]
                 "00000000000000001001100001100001",
                 // Instruction [type=BRANCH, operation=LE,
-                // registers=TwoR[Rs1=Register[number=2], Rd=Register[number=1]], immediate=2]
-                "00000000000100001001010000100111",
-                // Instruction [type=MATH, operation=ADD, registers=TwoR[Rs1=Register[number=4],
-                // Rd=Register[number=1]], immediate=0]
-                "00000000000000010011100000100011",
+                // registers=TwoR[Rs1=Register[number=3], Rd=Register[number=1]], immediate=2]
+                "00000000000100001101010000100111",
+                // Instruction [type=MATH, operation=ADD, registers=TwoR[Rs1=Register[number=1],
+                // Rd=Register[number=4]], immediate=0]
+                "00000000000000000111100010000011",
                 // Instruction [type=LOAD, operation=NOP, registers=NoR[], immediate=0]
                 "00000000000000000000000000010000",
                 // Instruction [type=MATH, operation=SUB,
@@ -1220,6 +1222,7 @@ public class ProcessorTests {
                 // Instruction [type=LOAD, operation=NOP, registers=NoR[], immediate=0]
                 "00000000000000000000000000010000",
         }, processor -> {
+            assertEquals(6, processor.getRegister(1).getSigned());
             assertEquals(8, processor.getRegister(4).getSigned());
         });
 
@@ -1271,6 +1274,121 @@ public class ProcessorTests {
                 "00000000000000000000000000010000",
         }, processor -> {
             assertEquals(55, processor.getRegister(3).getSigned());
+        });
+    }
+
+    @Test
+    public void MoreCallAndPush() {
+        ProcessorTestTemplate(new String[] {
+
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=1]], immediate=1]
+                "00000000000000000101100000100001",
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=2]], immediate=-27]
+                "11111111111110010101100001000001",
+                // Instruction [type=CALL, operation=GT, registers=TwoR[Rs1=Register[number=1],
+                // Rd=Register[number=2]], immediate=1]
+                "00000000000010000101000001001011",
+                // Instruction [type=MATH, operation=NOP, registers=NoR[], immediate=0]
+                "00000000000000000000000000000000",
+                // Instruction [type=PUSH, operation=XOR,
+                // registers=ThreeR[Rs1=Register[number=1], Rs2=Register[number=2],
+                // Rd=Register[number=0]], immediate=0]
+                "00000000000010001010100000001110",
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=3]], immediate=5]
+                "00000000000000010101100001100001",
+                // Instruction [type=CALL, operation=EQ,
+                // registers=ThreeR[Rs1=Register[number=1], Rs2=Register[number=3],
+                // Rd=Register[number=1]], immediate=2]
+                "00000010000010001100000000101010",
+                // Instruction [type=POP, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=4]], immediate=0]
+                "00000000000000000001100010011001",
+                // Instruction [type=LOAD, operation=NOP, registers=NoR[], immediate=0]
+                "00000000000000000000000000010000",
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=5]], immediate=1]
+                "00000000000000000101100010100001",
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=6]], immediate=30]
+                "00000000000001111001100011000001",
+                // Instruction [type=PUSH, operation=OR, registers=TwoR[Rs1=Register[number=6],
+                // Rd=Register[number=3]], immediate=0]
+                "00000000000000011010010001101111",
+                // Instruction [type=CALL, operation=EQ, registers=TwoR[Rs1=Register[number=5],
+                // Rd=Register[number=1]], immediate=-8]
+                "11111111110000010100000000101011",
+                // Instruction [type=POP, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=7]], immediate=0]
+                "00000000000000000001100011111001",
+                // Instruction [type=LOAD, operation=NOP, registers=NoR[], immediate=0]
+                "00000000000000000000000000010000",
+        }, processor -> {
+            assertEquals(1, processor.getRegister(1).getSigned());
+            assertEquals(-27, processor.getRegister(2).getSigned());
+            assertEquals(5, processor.getRegister(3).getSigned());
+            assertEquals(-28, processor.getRegister(4).getSigned());
+            assertEquals(0, processor.getRegister(5).getSigned());
+            assertEquals(0, processor.getRegister(6).getSigned());
+            assertEquals(0, processor.getRegister(7).getSigned());
+        });
+    }
+
+    @Test
+    public void MoreCallPushAndBranch() {
+        ProcessorTestTemplate(new String[] {
+
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=1]], immediate=45]
+                "00000000000010110101100000100001",
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=2]], immediate=67]
+                "00000000000100001101100001000001",
+                // Instruction [type=BRANCH, operation=LE,
+                // registers=ThreeR[Rs1=Register[number=1], Rs2=Register[number=2],
+                // Rd=Register[number=0]], immediate=1]
+                "00000001000010001001010000000110",
+                // Instruction [type=MATH, operation=NOP, registers=NoR[], immediate=0]
+                "00000000000000000000000000000000",
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=3]], immediate=67]
+                "00000000000100001101100001100001",
+                // Instruction [type=CALL, operation=GE,
+                // registers=ThreeR[Rs1=Register[number=2], Rs2=Register[number=2],
+                // Rd=Register[number=0]], immediate=8]
+                "00001000000100001000110000001010",
+                // Instruction [type=MATH, operation=ADD,
+                // registers=ThreeR[Rs1=Register[number=4], Rs2=Register[number=1],
+                // Rd=Register[number=5]], immediate=0]
+                "00000000001000000111100010100010",
+                // Instruction [type=MATH, operation=NOP, registers=NoR[], immediate=0]
+                "00000000000000000000000000000000",
+                // Instruction [type=MATH, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=6]], immediate=2]
+                "00000000000000001001100011000001",
+                // Instruction [type=PUSH, operation=LSHIFT,
+                // registers=ThreeR[Rs1=Register[number=2], Rs2=Register[number=6],
+                // Rd=Register[number=31]], immediate=0]
+                "00000000000100011011001111101110",
+                // Instruction [type=CALL, operation=GT,
+                // registers=ThreeR[Rs1=Register[number=2], Rs2=Register[number=2],
+                // Rd=Register[number=21]], immediate=5]
+                "00000101000100001001001010101010",
+                // Instruction [type=POP, operation=NOP,
+                // registers=DestOnly[Rd=Register[number=4]], immediate=0]
+                "00000000000000000001100010011001",
+                // Instruction [type=LOAD, operation=NOP, registers=NoR[], immediate=0]
+                "00000000000000000000000000010000",
+        }, processor -> {
+            assertEquals(45, processor.getRegister(1).getSigned());
+            assertEquals(67, processor.getRegister(2).getSigned());
+            assertEquals(67, processor.getRegister(3).getSigned());
+            assertEquals(268, processor.getRegister(4).getSigned());
+            assertEquals(313, processor.getRegister(5).getSigned());
+            assertEquals(2, processor.getRegister(6).getSigned());
+            assertEquals(0, processor.getRegister(7).getSigned());
         });
     }
 }
