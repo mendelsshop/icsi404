@@ -43,9 +43,8 @@ public class Lexer {
             put("lt", TokenType.LESS);
             put("ge", TokenType.GREATEROREQUAL);
             put("le", TokenType.LESSOREQUAL);
-            put("shift", TokenType.SHIFT);
-            put("left", TokenType.LEFT);
-            put("right", TokenType.RIGHT);
+            put("rshift", TokenType.RSHIFT);
+            put("lshift", TokenType.LSHIFT);
         }
     };
 

@@ -39,9 +39,6 @@ public class Parser {
                          * */
                         put(TokenType.MATH, parseInstruction(InstructionType.MATH, Optional.of(Parser::isMathOperator),
                                         Optional.empty(), Optional.empty(), Optional.of(false), Optional.of(false)));
-                        put(TokenType.SHIFT, parseInstruction(InstructionType.MATH, Optional
-                                        .of(op -> op.getType() == TokenType.LEFT || op.getType() == TokenType.RIGHT),
-                                        Optional.empty(), Optional.empty(), Optional.of(false), Optional.of(false)));
                         put(TokenType.BRANCH,
                                         parseInstruction(InstructionType.BRANCH, Optional.of(Parser::isBooleanOperator),
                                                         Optional.empty(), Optional.empty(), Optional.of(true),
@@ -81,7 +78,7 @@ public class Parser {
 
         private static boolean isMathOperator(Token op) {
                 return switch (op.getType()) {
-                        case AND, OR, XOR, NOT, ADD, SUBTRACT, MULTIPLY -> true;
+                        case AND, OR, XOR, NOT, ADD, SUBTRACT, MULTIPLY, LSHIFT, RSHIFT -> true;
                         default -> false;
                 };
         }
@@ -99,8 +96,8 @@ public class Parser {
                         case OR -> Operation.OR;
                         case XOR -> Operation.XOR;
                         case NOT -> Operation.NOT;
-                        case LEFT -> Operation.LEFT_SHIFT;
-                        case RIGHT -> Operation.RIGHT_SHIFT;
+                        case LSHIFT -> Operation.LEFT_SHIFT;
+                        case RSHIFT -> Operation.RIGHT_SHIFT;
                         case ADD -> Operation.ADD;
                         case SUBTRACT -> Operation.SUB;
                         case MULTIPLY -> Operation.MUL;
