@@ -9,11 +9,12 @@ import Assembler.AssemblerException.ExceptionType;
 import Assembler.Token.TokenType;
 
 public class Lexer {
-    // protected so I don't have to duplicate this for FunctionalLexer
     protected StringHandler source;
     // position and line number are zero-based
     protected int position = 1;
     protected int currentLine = 1;
+
+    // keyword list
     private HashMap<String, Token.TokenType> keywords = new HashMap<String, Token.TokenType>() {
         {
             put("math", TokenType.MATH);
@@ -54,16 +55,18 @@ public class Lexer {
 
     public LinkedList<Token> lex() throws AssemblerException {
         var tokens = new LinkedList<Token>();
-        // TODO: make sure each none newline token is delimeted by space or newline
         while (!source.IsDone()) {
             var token = lexCharacter(source.Peek());
             tokens.add(token);
             var foundWhiteSpace = absorb(' ');
             var line = currentLine;
             var newline = absorb('\n');
+            // if we hit end of the line add newline
             if (newline) {
                 tokens.add(new Token(position, line, TokenType.NEWLINE));
                 position = 1;
+                // otherwise if we dont have a whitespace after the current token
+                // that means there is not proper spacing between tokens
             } else if (!foundWhiteSpace) {
                 throw new AssemblerException(currentLine, position,
                         "expected white space between items in a statement\nor newline between statements",
@@ -74,10 +77,14 @@ public class Lexer {
         return tokens;
     }
 
+    // used to absorb (multiple) white space and comments
+    // returns true if found the given whitespace type - which is needed to know if
+    // there is random invalid characters at the end of a line
     private boolean absorb(char needle) {
         Function<Character, Boolean> checkWhiteSpace = ((peeked) -> peeked == needle || peeked == '\r'
                 || (needle == '\n' && peeked == ';'));
         var whiteSpaceFound = false;
+        // while we have valid whitespace
         while (!source.IsDone()
                 && checkWhiteSpace
                         .apply(source.Peek())) {
@@ -85,6 +92,7 @@ public class Lexer {
             char getChar = source.GetChar();
             if (getChar == '\n') {
                 currentLine++;
+                // we use ; for comments
             } else if (getChar == ';') {
                 // absorb comments
                 while (!source.IsDone() && !(source.GetChar() == '\n')) {
@@ -127,18 +135,22 @@ public class Lexer {
         var startPosition = position++;
         source.Swallow(1);
 
+        // if we parse a register and the user does not specify the register number
         if (source.IsDone()) {
             throw new AssemblerException(currentLine, startPosition, "invalied register: register number not given",
                     AssemblerException.ExceptionType.LexicalError);
         }
         var firstDigit = GetChar();
+        // absorb digit of register number
         if (!isDigit(firstDigit)) {
             throw new AssemblerException(currentLine, startPosition,
                     "invalied register: register number is not a number: `" + firstDigit + "`",
                     AssemblerException.ExceptionType.LexicalError);
         }
+        // get possible second digit of the register number
         if (!source.IsDone() && isDigit(source.Peek())) {
             var secondDigit = GetChar();
+            // if there is a second digit validate that the number is not to big ie < 32
             var registerNumber = (firstDigit - '0') * 10 + (secondDigit - '0');
             if (registerNumber > 31) {
                 throw new AssemblerException(currentLine, startPosition,
@@ -147,6 +159,7 @@ public class Lexer {
             }
             return new Token(startPosition, currentLine, TokenType.REGISTER, registerNumber);
 
+            // if second digit is not a number whe have an error in the assembly
         } else if (!source.IsDone() && (notWhiteSpace(source.Peek()))) {
             throw new AssemblerException(currentLine, startPosition,
                     "invalied register: second digit of register not a digit: `" + source.Peek() + "`",
@@ -194,32 +207,49 @@ public class Lexer {
 
         int startPosition = position;
         String word = "";
+        // read the word any lower case sequence of characters
         while (!source.IsDone() && (isLowerCase(source.Peek()))) {
             position++;
             word += source.GetChar();
         }
+        // we duplicate the word, so that java does not complain about mutable variables
+        // in lambdas
         var words = word;
+
+        // if the word is not in the keyword error - otherwise get the token for the
+        // word
         return Optional.ofNullable(keywords.get(word)).map(tt -> new Token(startPosition, currentLine, tt))
                 .orElseThrow(() -> new AssemblerException(currentLine, startPosition,
                         "invalid instruction: `" + words + "`",
                         ExceptionType.LexicalError));
     }
 
+    // proceces number
+    // takes a boolean to know if the number should be negative or not
     private Token processInteger(boolean negative) throws AssemblerException {
         String number = "";
         int startPosition = position;
+        // absorb the digits
         while (!source.IsDone() && isDigit(source.Peek())) {
             position++;
             number += source.GetChar();
         }
+        // since a number is the last thing in a line if there any no white space
+        // character the line is wrong
         if (!source.IsDone() && notWhiteSpace(source.Peek())) {
 
             throw new AssemblerException(currentLine, startPosition,
-                    "invalied register: last digit of register not a digit: `" + source.Peek() + "`",
+                    "invalid line: character found after number `" + source.Peek() + "`",
                     AssemblerException.ExceptionType.LexicalError);
         }
-        // we know that this method is called only when we peek a number so their is no
-        // chance that the number is empty
+        // if the number is naegative its possible that there were no digits in which
+        // case its an invalid number
+        if (number.isBlank()) {
+
+            throw new AssemblerException(currentLine, startPosition,
+                    "invalied number: negative number has no digits",
+                    AssemblerException.ExceptionType.LexicalError);
+        }
         return new Token(position, currentLine, TokenType.VALUE, (negative ? -1 : 1) * Integer.parseInt(number));
     }
 
