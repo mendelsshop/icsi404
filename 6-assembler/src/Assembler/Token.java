@@ -44,6 +44,7 @@ public class Token {
         return type;
     }
 
+    // get the value of this token only works for registers and numbers
     public Optional<Integer> getValue() {
         return value;
     }

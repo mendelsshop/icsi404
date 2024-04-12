@@ -23,9 +23,10 @@ public class TokenHandler {
         return Optional.empty();
     }
 
+    // get next token
     public Optional<Token> Remove() {
         try {
-            return Optional.ofNullable(tokenStream.pop()); 
+            return Optional.ofNullable(tokenStream.pop());
         } catch (NoSuchElementException e) {
             return Optional.empty();
         }
