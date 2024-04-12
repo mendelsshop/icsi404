@@ -224,4 +224,14 @@ public class MainMemory {
         return address;
     }
 
+    public static void saveBlock(Word address, Word[] cached) {
+        var int_address = (int) address.getUnsigned();
+        // invalid reads -> exception
+        if (int_address >= MEMORY.length) {
+            throw new MemoryWriteError(int_address, cached[0]);
+        }
+        for (var i = 0; i < cached.length; i++) {
+            MEMORY[int_address + i] = cached[i];
+        }
+    }
 }
