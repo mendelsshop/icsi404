@@ -3,83 +3,55 @@ package Assembler;
 import java.util.Optional;
 
 public class Token {
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + startPosition;
-		result = prime * result + lineNumber;
-		result = prime * result + ((type == null) ? 0 : type.hashCode());
-		return result;
-	}
+    public enum TokenType {
+        MATH, ADD, SUBTRACT, MULTIPLY, AND, OR, NOT, XOR, COPY, HALT, BRANCH, JUMP, CALL, PUSH, LOAD, RETURN, STORE,
+        PEEK, POP, INTERRUPT, EQUAL, UNEQUAL, GREATER, LESS, GREATEROREQUAL, LESSOREQUAL, REGISTER,
+        VALUE, NEWLINE, CALLIF, RSHIFT, LSHIFT
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		Token other = (Token) obj;
-		if (startPosition != other.startPosition)
-			return false;
-		if (lineNumber != other.lineNumber)
-			return false;
-		if (type != other.type)
-			return false;
-		return true;
-	}
+    private int startPosition;
 
-	public enum TokenType {
-		MATH, ADD, SUBTRACT, MULTIPLY, AND, OR, NOT, XOR, COPY, HALT, BRANCH, JUMP, CALL, PUSH, LOAD, RETURN, STORE,
-		PEEK, POP, INTERRUPT, EQUAL, UNEQUAL, GREATER, LESS, GREATEROREQUAL, LESSOREQUAL, REGISTER, VALUE, NEWLINE,
-		CALLIF, RSHIFT, LSHIFT
-	}
+    private int lineNumber;
 
-	private int startPosition;
+    private TokenType type;
 
-	private int lineNumber;
+    // we only have integers because the only things we stores values are registers
+    // (1-32) or (0-31) (probably) and values (positive integers)
+    private Optional<Integer> value = Optional.empty();
 
-	private TokenType type;
+    public Token(int position, int line, TokenType type, Integer value) {
+        startPosition = position;
+        lineNumber = line;
+        this.type = type;
+        this.value = Optional.ofNullable(value);
+    }
 
-	// we only have integers because the only things we stores values are registers
-	// (1-32) or (0-31) (probably) and values (positive integers)
-	private Optional<Integer> value = Optional.empty();
+    public Token(int position, int line, TokenType type) {
+        startPosition = position;
+        lineNumber = line;
+        this.type = type;
+    }
 
-	public Token(int position, int line, TokenType type, Integer value) {
-		startPosition = position;
-		lineNumber = line;
-		this.type = type;
-		this.value = Optional.ofNullable(value);
-	}
+    public int getStartPosition() {
+        return startPosition;
+    }
 
-	public Token(int position, int line, TokenType type) {
-		startPosition = position;
-		lineNumber = line;
-		this.type = type;
-	}
+    public int getLineNumber() {
+        return lineNumber;
+    }
 
-	public int getStartPosition() {
-		return startPosition;
-	}
+    public TokenType getType() {
+        return type;
+    }
 
-	public int getLineNumber() {
-		return lineNumber;
-	}
+    // get the value of this token only works for registers and numbers
+    public Optional<Integer> getValue() {
+        return value;
+    }
 
-	public TokenType getType() {
-		return type;
-	}
-
-	// get the value of this token only works for registers and numbers
-	public Optional<Integer> getValue() {
-		return value;
-	}
-
-	@Override
-	public String toString() {
-		return type + value.map(c -> "(" + c + ")").orElse("") + "[" + startPosition + " " + lineNumber + "]";
-	}
+    @Override
+    public String toString() {
+        return type + value.map(c -> "(" + c + ")").orElse("") + "[" + startPosition + " " + lineNumber + "]";
+    }
 
 }
