@@ -7,37 +7,46 @@ import Assembler.Instruction.RegisterFormat.TwoR;
 
 public class Instruction {
     public InstructionType type;
+    // by default an instruction has no operation (function) has NoR format
+    // and has 0 as its immediate value
     public Operation operation = Operation.NOP;
     public RegisterFormat registers = new RegisterFormat.NoR();
     public int immediate = 0;
 
+    // used for debugging output of assembler to show length in bits of certain
+    // parts of instruction
     private static String tagDebug(String tag, String value) {
         // return "<" + tag + ":" + value.length() + ">" + value + "<" + tag + ">";
         return value;
     }
 
     /*
-     * * * private constructor so that the only way to create an instruction is via
-     * * * buildwithtype
-     */ private Instruction() {
+     * private constructor so that the only way to create an instruction is via
+     * buildwithtype
+     */
+    private Instruction() {
     }
 
+    // set the immediate value and return the `new` instruction
     public Instruction immediate(int immediate) {
         this.immediate = immediate;
         return this;
     }
 
+    // create a new instruction with a given type (math, call, ...)
     public static Instruction buildWithType(InstructionType type) {
         var instruction = new Instruction();
         instruction.type = type;
         return instruction;
     }
 
+    // set the operation of this instrcuction and return the `new` instruction
     public Instruction operation(Operation op) {
         this.operation = op;
         return this;
     }
 
+    // set the registers of this instrcuction and return the `new` instruction
     public Instruction registers(RegisterFormat registers) {
         this.registers = registers;
         return this;
@@ -51,18 +60,29 @@ public class Instruction {
         MATH, BRANCH, CALL, PUSH, LOAD, STORE, POP,
     }
 
+    // turn a integer to a string of bytes of a certain length
     private static String intToBytes(int value, int length) {
+        // we first obtain an intial binary string using a java builtin
+        // unfortantly its not exactly what we need as for postive numbers it only goes
+        // up the minum length needed to represent the number in biary
+        // but for negative number since it account for 2's compliment it does use like
+        // 32 bits
         var valueString = Integer.toBinaryString(value);
         var actualStart = valueString.length() - length;
+        // if the java generated binary string is to big truncate it
         if (actualStart > 0) {
             valueString = valueString.substring(actualStart, valueString.length());
         } else if (actualStart < 0) {
+            // otherwise sign extend it
             var msb = value < 0 ? "1" : "0";
             valueString = msb.repeat(-1 * actualStart) + valueString;
         }
         return valueString;
     }
 
+    // how store registers
+    // uses records + sealed to obtain sum type like syntax like seen in ml based
+    // languages
     public sealed interface RegisterFormat
             permits RegisterFormat.DestOnly, RegisterFormat.NoR, RegisterFormat.TwoR, RegisterFormat.ThreeR {
         public record Register(int number) {
@@ -116,10 +136,12 @@ public class Instruction {
             }
         }
 
+        // mandate that each variant have a way to get it as bits
         public String toBitPattern(String op);
     }
 
     public String toBitPattern() {
+        // obtain the bit patterns for different parts of the instruction
         var instructionFormat = switch (registers) {
             case ThreeR r -> "10";
             case TwoR r -> "11";
@@ -159,6 +181,7 @@ public class Instruction {
             case SUB -> "1111";
             case XOR -> "1010";
         };
+        // then join and return the bits
         return tagDebug("imm", intToBytes(immediate, immediateLength)) + registers.toBitPattern(function)
                 + tagDebug("type", instructionType) + tagDebug("format", instructionFormat);
     }

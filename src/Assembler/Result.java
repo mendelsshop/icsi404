@@ -4,6 +4,8 @@ package Assembler;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+// TODO: better explantion of result
+// Results can either be ok, or error
 public sealed interface Result<T, E> permits Result.Ok, Result.Err {
 
     public class GetException extends RuntimeException {
