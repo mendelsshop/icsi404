@@ -112,8 +112,7 @@ public class Word {
 		checkBitRange0(amount);
 		var zerod = Stream.generate(() -> new Bit(false)).limit(amount);
 		var shifted = Arrays.stream(bits).limit(32 - amount).map(b -> new Bit(b.getValue()));
-		return new Word(Stream.concat(zerod, shifted)
-				.collect(Collectors.toList()).toArray(new Bit[32]));
+		return new Word(Stream.concat(zerod, shifted).collect(Collectors.toList()).toArray(new Bit[32]));
 	}
 
 	public Word leftShift2(int amount) {
@@ -146,8 +145,7 @@ public class Word {
 		checkBitRange0(amount);
 		var zerod = Stream.generate(() -> new Bit(false)).limit(amount);
 		var shifted = Arrays.stream(bits).skip(amount).map(b -> new Bit(b.getValue()));
-		return new Word(Stream.concat(shifted, zerod)
-				.collect(Collectors.toList()).toArray(new Bit[32]));
+		return new Word(Stream.concat(shifted, zerod).collect(Collectors.toList()).toArray(new Bit[32]));
 	}
 
 	@Override
@@ -158,8 +156,7 @@ public class Word {
 
 	public int getSigned() {
 		return (bits[31].getValue() ? -2147483648 : 0)
-				+ IntStream.range(0, 31).map((i) -> (bits[i].getValue() ? (int) Math.pow(2, i) : 0))
-						.sum();
+				+ IntStream.range(0, 31).map((i) -> (bits[i].getValue() ? (int) Math.pow(2, i) : 0)).sum();
 	}
 
 	public Word negate() {
@@ -291,15 +288,12 @@ public class Word {
 
 	private Word map(Function<Bit, Bit> mapper) {
 		return new Word(
-				Arrays.stream(bits).map(b -> mapper.apply(b))
-						.collect(Collectors.toList()).toArray(new Bit[32]));
+				Arrays.stream(bits).map(b -> mapper.apply(b)).collect(Collectors.toList()).toArray(new Bit[32]));
 	}
 
 	private Word map(BiFunction<Bit, Bit, Bit> mapper, Word other) {
-		return new Word(
-				Stream.iterate(0, i -> i < 32, i -> i + 1)
-						.map(i -> mapper.apply(bits[i], other.bits[i]))
-						.collect(Collectors.toList()).toArray(new Bit[32]));
+		return new Word(Stream.iterate(0, i -> i < 32, i -> i + 1).map(i -> mapper.apply(bits[i], other.bits[i]))
+				.collect(Collectors.toList()).toArray(new Bit[32]));
 	}
 
 	private Word map2(BiFunction<Bit, Bit, Bit> mapper, Word other) {
@@ -319,9 +313,7 @@ public class Word {
 	}
 
 	public void copy(Word other) {
-		bits = (Bit[]) Arrays.stream(other.bits)
-				.map(Bit::clone)
-				.toArray(Bit[]::new);
+		bits = (Bit[]) Arrays.stream(other.bits).map(Bit::clone).toArray(Bit[]::new);
 	}
 
 	public void copy2(Word other) {
