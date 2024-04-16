@@ -7,11 +7,30 @@ import Assembler.Instruction.RegisterFormat.TwoR;
 
 public class Instruction {
     public InstructionType type;
+
+    public InstructionType getType() {
+        return type;
+    }
+
     // by default an instruction has no operation (function) has NoR format
     // and has 0 as its immediate value
     public Operation operation = Operation.NOP;
+
+    public Operation getOperation() {
+        return operation;
+    }
+
     public RegisterFormat registers = new RegisterFormat.NoR();
+
+    public RegisterFormat getRegisters() {
+        return registers;
+    }
+
     public int immediate = 0;
+
+    public int getImmediate() {
+        return immediate;
+    }
 
     // used for debugging output of assembler to show length in bits of certain
     // parts of instruction
@@ -86,12 +105,59 @@ public class Instruction {
     public sealed interface RegisterFormat
             permits RegisterFormat.DestOnly, RegisterFormat.NoR, RegisterFormat.TwoR, RegisterFormat.ThreeR {
         public record Register(int number) {
+            @Override
+            public int hashCode() {
+                final int prime = 31;
+                int result = 1;
+                result = prime * result + number;
+                return result;
+            }
+
+            @Override
+            public boolean equals(Object obj) {
+                if (this == obj)
+                    return true;
+                if (obj == null)
+                    return false;
+                if (getClass() != obj.getClass())
+                    return false;
+                Register other = (Register) obj;
+                if (number != other.number)
+                    return false;
+                return true;
+            }
+
             public String toBitPattern() {
                 return intToBytes(number, 5);
             }
         }
 
         public record DestOnly(Register Rd) implements RegisterFormat {
+            @Override
+            public int hashCode() {
+                final int prime = 31;
+                int result = 1;
+                result = prime * result + ((Rd == null) ? 0 : Rd.hashCode());
+                return result;
+            }
+
+            @Override
+            public boolean equals(Object obj) {
+                if (this == obj)
+                    return true;
+                if (obj == null)
+                    return false;
+                if (getClass() != obj.getClass())
+                    return false;
+                DestOnly other = (DestOnly) obj;
+                if (Rd == null) {
+                    if (other.Rd != null)
+                        return false;
+                } else if (!Rd.equals(other.Rd))
+                    return false;
+                return true;
+            }
+
             private static String tagDebug(String tag, String value) {
                 // return "<" + tag + ":" + value.length() + ">" + value + "<" + tag + ">";
                 return value;
@@ -117,6 +183,37 @@ public class Instruction {
             }
 
             @Override
+            public int hashCode() {
+                final int prime = 31;
+                int result = 1;
+                result = prime * result + ((Rs1 == null) ? 0 : Rs1.hashCode());
+                result = prime * result + ((Rd == null) ? 0 : Rd.hashCode());
+                return result;
+            }
+
+            @Override
+            public boolean equals(Object obj) {
+                if (this == obj)
+                    return true;
+                if (obj == null)
+                    return false;
+                if (getClass() != obj.getClass())
+                    return false;
+                TwoR other = (TwoR) obj;
+                if (Rs1 == null) {
+                    if (other.Rs1 != null)
+                        return false;
+                } else if (!Rs1.equals(other.Rs1))
+                    return false;
+                if (Rd == null) {
+                    if (other.Rd != null)
+                        return false;
+                } else if (!Rd.equals(other.Rd))
+                    return false;
+                return true;
+            }
+
+            @Override
             public String toBitPattern(String op) {
                 return tagDebug("Rs1", Rs1.toBitPattern()) + tagDebug("function", op)
                         + tagDebug("Rd", Rd.toBitPattern());
@@ -127,6 +224,43 @@ public class Instruction {
             private static String tagDebug(String tag, String value) {
                 // return "<" + tag + ":" + value.length() + ">" + value + "<" + tag + ">";
                 return value;
+            }
+
+            @Override
+            public int hashCode() {
+                final int prime = 31;
+                int result = 1;
+                result = prime * result + ((Rs1 == null) ? 0 : Rs1.hashCode());
+                result = prime * result + ((Rs2 == null) ? 0 : Rs2.hashCode());
+                result = prime * result + ((Rd == null) ? 0 : Rd.hashCode());
+                return result;
+            }
+
+            @Override
+            public boolean equals(Object obj) {
+                if (this == obj)
+                    return true;
+                if (obj == null)
+                    return false;
+                if (getClass() != obj.getClass())
+                    return false;
+                ThreeR other = (ThreeR) obj;
+                if (Rs1 == null) {
+                    if (other.Rs1 != null)
+                        return false;
+                } else if (!Rs1.equals(other.Rs1))
+                    return false;
+                if (Rs2 == null) {
+                    if (other.Rs2 != null)
+                        return false;
+                } else if (!Rs2.equals(other.Rs2))
+                    return false;
+                if (Rd == null) {
+                    if (other.Rd != null)
+                        return false;
+                } else if (!Rd.equals(other.Rd))
+                    return false;
+                return true;
             }
 
             @Override
@@ -190,5 +324,39 @@ public class Instruction {
     public String toString() {
         return "Instruction [type=" + type + ", operation=" + operation + ", registers=" + registers + ", immediate="
                 + immediate + "]";
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((type == null) ? 0 : type.hashCode());
+        result = prime * result + ((operation == null) ? 0 : operation.hashCode());
+        result = prime * result + ((registers == null) ? 0 : registers.hashCode());
+        result = prime * result + immediate;
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        Instruction other = (Instruction) obj;
+        if (type != other.type)
+            return false;
+        if (operation != other.operation)
+            return false;
+        if (registers == null) {
+            if (other.registers != null)
+                return false;
+        } else if (!registers.equals(other.registers))
+            return false;
+        if (immediate != other.immediate)
+            return false;
+        return true;
     }
 }

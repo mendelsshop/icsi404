@@ -3,7 +3,35 @@ package Assembler;
 import java.util.Optional;
 
 public class Token {
-    public enum TokenType {
+    @Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + startPosition;
+		result = prime * result + lineNumber;
+		result = prime * result + ((type == null) ? 0 : type.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Token other = (Token) obj;
+		if (startPosition != other.startPosition)
+			return false;
+		if (lineNumber != other.lineNumber)
+			return false;
+		if (type != other.type)
+			return false;
+		return true;
+	}
+
+	public enum TokenType {
         MATH, ADD, SUBTRACT, MULTIPLY, AND, OR, NOT, XOR, COPY, HALT, BRANCH, JUMP, CALL, PUSH, LOAD, RETURN, STORE,
         PEEK, POP, INTERRUPT, EQUAL, UNEQUAL, GREATER, LESS, GREATEROREQUAL, LESSOREQUAL, REGISTER,
         VALUE, NEWLINE, CALLIF, RSHIFT, LSHIFT
