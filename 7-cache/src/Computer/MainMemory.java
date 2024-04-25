@@ -236,6 +236,6 @@ public class MainMemory {
     }
 
     public static int accessCycleCount() {
-        return 350;
+        return 300;
     }
 }

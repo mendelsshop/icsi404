@@ -7,10 +7,12 @@ import java.util.stream.Stream;
  * InstructionCache
  */
 public class InstructionCache {
+                //TODO: caches static or not, also are we supposed to test with and without l2 cache
         // we start address at 1024 because there are only 1024 memory addresses
         // so any address over 1024 invalid
         private Word startAddress = new Word(1024);
         private Word[] cached = new Word[8];
+                private static int clockCycle = 0;
 
         // TODO: if we only use this to cache instructions
         // what happens if we overwrite an instruction with a store, so the cache has
@@ -18,7 +20,11 @@ public class InstructionCache {
 
         // TODO: what happens if we read near the end
 
-        // start = 1024
+        public static int getClockCycle() {
+					return clockCycle;
+				}
+
+		// start = 1024
         // lookup 1014
         // 1014 - 1024 = -10
         // miss
@@ -59,9 +65,12 @@ public class InstructionCache {
                                                                                                                                                                                                                 ? 1
                                                                                                                                                                                                                 : 0
                                                                 : null)
-                                .map(i -> cached[i]).orElseGet(() -> {
+                                .map(i -> {clockCycle =10;;return cached[i];}).orElseGet(() -> {
                                         // if cache miss read from memory
                                         startAddress = LevelTwoCache.readBlock(address, cached);
+                                clockCycle = 50; // TODO: does this account for the 20 cycles it takes if l2 cache hits
+                                // TODO: what  if l2 misses
+                                // or is this a me problem because/clockcycle is not public in processor
 
                                         return Read(address);
                                 });
