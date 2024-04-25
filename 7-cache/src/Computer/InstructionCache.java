@@ -61,7 +61,8 @@ public class InstructionCache {
                                                                 : null)
                                 .map(i -> cached[i]).orElseGet(() -> {
                                         // if cache miss read from memory
-                                        startAddress = MainMemory.copyBlock(address, cached);
+                                        startAddress = LevelTwoCache.readBlock(address, cached);
+
                                         return Read(address);
                                 });
         }

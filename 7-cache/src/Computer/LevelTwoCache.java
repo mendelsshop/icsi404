@@ -3,7 +3,7 @@ package Computer;
 
 import java.util.Optional;
 import java.util.Random;
-import java.util.function.Function;
+import static Utils.Utils.TriFunction;
 import java.util.stream.Stream;
 
 import Computer.MainMemory.MemoryReadError;
@@ -13,11 +13,11 @@ import Computer.MainMemory.MemoryReadError;
  */
 // TODO: explain better remove old comments from InsturctionCache
 public class LevelTwoCache {
-    private class CacheUnit {
+    private static class CacheUnit {
         private Word startAddress = new Word(1024);
         private Word[] cached = new Word[32];
 
-        public <T> Optional<T> access(Word address, Function<Word, T> accesor) {
+        public <T> Optional<T> access(Word address, TriFunction<Word, Integer, Word[], T> accesor) {
             var addressDiffernce = ALU.sub(address, startAddress);
             var firstBit = addressDiffernce.getBit(0);
             var secondBit = addressDiffernce.getBit(1);
@@ -43,7 +43,7 @@ public class LevelTwoCache {
                                                                                                                     : 0
                                     : null)
                     .map(
-                            i -> accesor.apply(cached[i]));
+                            i -> accesor.apply(startAddress, i, cached));
         }
 
         public void update(Word address) {
@@ -56,14 +56,14 @@ public class LevelTwoCache {
         }
     }
 
-    private CacheUnit[] cache = new CacheUnit[] {
+    private static CacheUnit[] cache = new CacheUnit[] {
             new CacheUnit(),
             new CacheUnit(),
             new CacheUnit(),
             new CacheUnit(),
     };
     // TODO: eviction strategy
-    private Random evicter = new Random();
+    private static Random evicter = new Random();
 
     // we start address at 1024 because there are only 1024 memory addresses
     // so any address over 1024 invalid
@@ -86,7 +86,7 @@ public class LevelTwoCache {
     // start = 1015
     // lookup 1025
     // invalid read
-    private <T> T access(Word address, Function<Word, T> accesor) {
+    private static <T> T access(Word address, TriFunction<Word, Integer, Word[], T> accesor) {
         if (Stream.iterate(10, i -> i < 32, i -> i + 1).map(address::getBit)
                 .reduce(Bit::or)
                 .get().getValue()) {
@@ -103,12 +103,20 @@ public class LevelTwoCache {
     }
 
     public Word read(Word address) {
-        return access(address, i -> i);
+        return access(address, (start, i, cache) -> cache[i]);
     }
-
-    public void write(Word address, Word value) {
-        access(address, i -> {
-            i.copy(value);
+public static Word readBlock(Word address, Word[] instructionCache) {
+        return access(address, (start, i, cache) -> {
+                for (int j = 0; j < cache.length; j++) {
+                        
+                                instructionCache[j].copy(cache[j]);
+                }
+                        return start;
+        });
+    }
+    public static void write(Word address, Word value) {
+        access(address, (start, i, cache)->{
+            cache[i].copy(value);
             // we just use null because generics cannot be instiated with void
             return null;
         });

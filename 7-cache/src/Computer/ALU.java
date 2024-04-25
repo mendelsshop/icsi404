@@ -12,8 +12,15 @@ public class ALU {
         AND, OR, XOR, NOT, LEFT_SHIFT, RIGHT_SHIFT, ADD, SUB, MUL, EQ, NEQ, LT, GE, GT, LE
     }
 
+    private int cycleCount = 0;
+
+    public int getCycleCount() {
+        return cycleCount;
+    }
+
     private Operation getOp(Bit[] op) {
         int res = 0;
+        // TODO: decode in clock cycle
         res += op[0].getValue() ? (int) Math.pow(2, 3) : 0;
         res += op[1].getValue() ? (int) Math.pow(2, 2) : 0;
         res += op[2].getValue() ? (int) Math.pow(2, 1) : 0;
@@ -66,7 +73,9 @@ public class ALU {
     }
 
     public void doOperation(Bit[] operation) {
-        switch (getOp(operation)) {
+        Operation op = getOp(operation);
+        cycleCount = (op == Operation.MUL) ? 10 : 2;
+        switch (op) {
             case AND ->
                 result = op1.and(op2);
             case OR ->
@@ -96,6 +105,7 @@ public class ALU {
 
     // TODO: do I have to use for equality ie op1 - op2 = 0
     // also can I use normal or for short circuitng
+    // TODO: do we have keep track of all these or in clock cycle
     public static Bit notEquals(Word op1, Word op2) {
         var result = sub(op1, op2);
         return result.getBit(0)
@@ -132,7 +142,9 @@ public class ALU {
                 .or(result.getBit(31));
     }
 
+    // TODO: keep track bops clock cycle
     public Bit doBooleanOperation(Bit[] operation) {
+        cycleCount = 2;
         // TODO: should bops be in alu?
         return switch (getOp(operation)) {
             case EQ ->

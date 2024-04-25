@@ -10,7 +10,13 @@ public class Processor {
     private Word currentInstruction = new Word(new Bit[32]);
     private Bit halted = new Bit(false);
     // TODO: should this be a word?
+    // TODO: better way to modify this other than asking for value when possibly
+    // needed, maybe we make it public or pass it to each modifiying method?
     private int clockCycle = 0;
+
+    public int getClockCycle() {
+        return clockCycle;
+    }
 
     private Word[] registers = new Word[] {
             getZero(), getZero(), getZero(), getZero(), getZero(), getZero(), getZero(), getZero(), getZero(),
@@ -43,6 +49,7 @@ public class Processor {
         SP.set(1024);
     }
 
+    // TODO: decode in clock cycle
     private void decode() {
         // get if (0r/1r/2r/3r)
         IF = getNBits(2, 0);
@@ -80,6 +87,7 @@ public class Processor {
     }
 
     private int registerAddressDecoder(Word word) {
+        // TODO: decode in clock cycle
         var firstBit = word.getBit(0);
         var secondBit = word.getBit(1);
         var thirdBit = word.getBit(2);
@@ -137,6 +145,8 @@ public class Processor {
     }
 
     public static Word getNBits(Word word, int size, int shift) {
+        // TODO: decode in clock cycle
+
         // creates a mask that only preseveres (size) amount of bits after shift right
         // by (shift)
         // we do this instead mutation current instruction which would be shift mask
@@ -169,6 +179,8 @@ public class Processor {
     }
 
     private InstructionCode getInstructionCode() {
+        // TODO: decode in clock cycle
+
         // this swithc statements is like a bunch of and on the first three bits but
         // using siwtch
         return switch (new Triple<Boolean, Boolean, Boolean>(IC.getBit(0).getValue(), IC.getBit(1).getValue(),
@@ -187,6 +199,8 @@ public class Processor {
     }
 
     private InstructionFormat getInstructionFormat() {
+        // TODO: decode in clock cycle
+
         // same as getInstructionCode, but for 2 bits
         return switch (new Tuple<Boolean, Boolean>(IF.getBit(0).getValue(), IF.getBit(1).getValue())) {
             case Tuple(Boolean fst, Boolean snd) when fst && snd -> InstructionFormat.TWOR;
@@ -205,12 +219,14 @@ public class Processor {
 
     private Word pop() {
         var result = MainMemory.read(SP);
+        clockCycle += MainMemory.accessCycleCount();
         SP.increment();
         return result;
     }
 
     private void push(Word value) {
         SP.decrement();
+        clockCycle += MainMemory.accessCycleCount();
         MainMemory.write(SP, value);
     }
 
@@ -228,6 +244,7 @@ public class Processor {
                 switch (getInstructionFormat()) {
                     case ONER -> {
                         push(PC);
+                        // TODO: alu "static" operations part of cache cycle count
                         result = ALU.add(getRegister(Rd), Immediate);
                     }
                     case THREER -> {
@@ -239,6 +256,7 @@ public class Processor {
                         } else {
                             result = PC;
                         }
+                        clockCycle += alu.getCycleCount();
                     }
                     case TWOR -> {
                         alu.setOp1(getRegister(Rs1));
@@ -249,6 +267,7 @@ public class Processor {
                         } else {
                             result = PC;
                         }
+                        clockCycle += alu.getCycleCount();
                     }
                     case ZEROR -> {
                         push(PC);
@@ -259,9 +278,18 @@ public class Processor {
             }
             case LOAD -> {
                 switch (getInstructionFormat()) {
-                    case TWOR -> result = MainMemory.read(ALU.add(getRegister(Rs1), Immediate));
-                    case THREER -> result = MainMemory.read(ALU.add(getRegister(Rs1), getRegister(Rs2)));
-                    case ONER -> result = MainMemory.read(ALU.add(getRegister(Rd), Immediate));
+                    case TWOR -> {
+                        result = MainMemory.read(ALU.add(getRegister(Rs1), Immediate));
+                        clockCycle += MainMemory.accessCycleCount();
+                    }
+                    case THREER -> {
+                        result = MainMemory.read(ALU.add(getRegister(Rs1), getRegister(Rs2)));
+                        clockCycle += MainMemory.accessCycleCount();
+                    }
+                    case ONER -> {
+                        result = MainMemory.read(ALU.add(getRegister(Rd), Immediate));
+                        clockCycle += MainMemory.accessCycleCount();
+                    }
                     case ZEROR -> {
                         result = pop();
                         // TODO: when we say Return is pop and set the PC
@@ -284,6 +312,7 @@ public class Processor {
                         alu.setOp2(getRegister(Rs2));
                         alu.doOperation(op);
                         result = alu.getResult();
+                        clockCycle += alu.getCycleCount();
                     }
                     case TWOR -> {
                         // put rs1 in op1 and op2
@@ -291,6 +320,7 @@ public class Processor {
                         alu.setOp2(getRegister(Rs1));
                         alu.doOperation(op);
                         result = alu.getResult();
+                        clockCycle += alu.getCycleCount();
                         // System.out.println(result.getSigned());
                     }
                 }
@@ -309,11 +339,13 @@ public class Processor {
                         Word address = ALU.add(SP, spRelativejump);
                         // System.out.println("peeking "+address.getSigned());
                         result = MainMemory.read(address);
+                        clockCycle += MainMemory.accessCycleCount();
                     }
                     // PEEK (does not modify sp)
                     case THREER -> {
                         var spRelativejump = ALU.add(getRegister(Rs1), getRegister(Rs2));
                         result = MainMemory.read(ALU.add(SP, spRelativejump));
+                        clockCycle += MainMemory.accessCycleCount();
                     }
                     // POP (modifies SP)
                     case ONER ->
@@ -333,6 +365,7 @@ public class Processor {
                         alu.setOp1(getRegister(Rd));
                         alu.setOp2(getRegister(Rs1));
                         alu.doOperation(op);
+                        clockCycle += alu.getCycleCount();
                         // System.out.println(alu.getResult());
                         result = alu.getResult();
                         SP.decrement();
@@ -342,6 +375,7 @@ public class Processor {
                         alu.setOp2(getRegister(Rs2));
                         alu.doOperation(op);
                         result = alu.getResult();
+                        clockCycle += alu.getCycleCount();
                         SP.decrement();
                     }
                     case ONER -> {
@@ -349,6 +383,7 @@ public class Processor {
                         alu.setOp2(Immediate);
                         alu.doOperation(op);
                         result = alu.getResult();
+                        clockCycle += alu.getCycleCount();
                         SP.decrement();
                     }
                     case ZEROR -> {
@@ -364,7 +399,10 @@ public class Processor {
                     // maybe do addition here and rest in store
                     case TWOR -> result = ALU.add(getRegister(Rd), Immediate);
                     case THREER -> result = ALU.add(getRegister(Rd), getRegister(Rs1));
-                    case ONER -> MainMemory.write(getRegister(Rd), Immediate);
+                    case ONER -> {
+                        MainMemory.write(getRegister(Rd), Immediate);
+                        clockCycle += MainMemory.accessCycleCount();
+                    }
                     case ZEROR -> {
                         // TODO: what happens if unused instructions are used
                     }
@@ -380,11 +418,13 @@ public class Processor {
                         alu.setOp1(getRegister(Rs1));
                         alu.setOp2(getRegister(Rs2));
                         result = (alu.doBooleanOperation(op).getValue()) ? ALU.add(PC, Immediate) : PC;
+                        clockCycle += alu.getCycleCount();
                     }
                     case TWOR -> {
                         alu.setOp1(getRegister(Rs1));
                         alu.setOp2(getRegister(Rd));
                         result = (alu.doBooleanOperation(op).getValue()) ? ALU.add(PC, Immediate) : PC;
+                        clockCycle += alu.getCycleCount();
                     }
                     case ZEROR -> result = Immediate;
                 }
@@ -420,15 +460,24 @@ public class Processor {
             case PUSH -> {
                 switch (getInstructionFormat()) {
                     // we already decremented sp in execute
-                    case THREER, TWOR, ONER -> MainMemory.write(SP, result);
+                    case THREER, TWOR, ONER -> {
+                        MainMemory.write(SP, result);
+                        clockCycle += MainMemory.accessCycleCount();
+                    }
                     default -> {
                     }
                 }
             }
             case STORE -> {
                 switch (getInstructionFormat()) {
-                    case TWOR -> MainMemory.write(result, getRegister(Rs1));
-                    case THREER -> MainMemory.write(result, getRegister(Rs2));
+                    case TWOR -> {
+                        MainMemory.write(result, getRegister(Rs1));
+                        clockCycle += MainMemory.accessCycleCount();
+                    }
+                    case THREER -> {
+                        MainMemory.write(result, getRegister(Rs2));
+                        clockCycle += MainMemory.accessCycleCount();
+                    }
                     default -> {
                     }
                 }
