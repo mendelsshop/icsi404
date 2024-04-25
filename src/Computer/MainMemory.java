@@ -234,4 +234,8 @@ public class MainMemory {
             MEMORY[int_address + i] = cached[i];
         }
     }
+
+    public static int accessCycleCount() {
+        return 350;
+    }
 }

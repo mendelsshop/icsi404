@@ -13,7 +13,11 @@ public class Instruction {
     public RegisterFormat registers = new RegisterFormat.NoR();
     public int immediate = 0;
 
-    // used for debugging output of assembler to show length in bits of certain
+    public int getImmediate() {
+		return immediate;
+	}
+
+	// used for debugging output of assembler to show length in bits of certain
     // parts of instruction
     private static String tagDebug(String tag, String value) {
         // return "<" + tag + ":" + value.length() + ">" + value + "<" + tag + ">";
