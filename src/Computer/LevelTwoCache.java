@@ -13,8 +13,15 @@ import Computer.MainMemory.MemoryReadError;
  */
 // TODO: explain better remove old comments from InsturctionCache
 public class LevelTwoCache {
-    private static class CacheUnit {
-        private Word startAddress = new Word(1024);
+        private static int clockCycle;
+
+		
+    public static int getClockCycle() {
+			return clockCycle;
+		}
+	private static class CacheUnit {
+
+		private Word startAddress = new Word(1024);
         private Word[] cached = new Word[32];
 
         public <T> Optional<T> access(Word address, TriFunction<Word, Integer, Word[], T> accesor) {
@@ -94,8 +101,11 @@ public class LevelTwoCache {
             throw new MemoryReadError((int) address.getUnsigned());
         }
         return Stream.iterate(0, i -> i < cache.length, i -> i + 1).map(i -> cache[i].access(address, accesor))
-                .reduce((a, b) -> a.or(() -> b)).get().orElseGet(() -> {
+                .reduce((a, b) -> a.or(() -> b)).get().map(x->{clockCycle =20; return x;}).orElseGet(() -> {
+                
                     var evicted = cache[evicter.nextInt(cache.length)];
+                // TODO: is cache miss 700 cycles -- because save to memory and then load new, or not?
+                clockCycle = 350;
                     evicted.save(address);
                     evicted.update(address);
                     return evicted.access(address, accesor).get();
