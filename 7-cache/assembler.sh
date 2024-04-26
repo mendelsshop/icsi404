@@ -5,6 +5,6 @@ fi
 # then run it with in and out files
 if [ $1 = '-r' ]; then
 	java --enable-preview  -cp bin Assembler.Assembler -- $2 $3
-else
+else 
 	java --enable-preview  -cp bin Assembler.Assembler -- $1 $2
 fi
