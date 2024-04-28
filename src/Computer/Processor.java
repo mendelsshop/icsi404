@@ -488,6 +488,7 @@ public class Processor {
 
     private void fetch() {
         currentInstruction = MainMemory.read(PC);
+        System.out.println(registers[4].getSigned());
         clockCycle += MainMemory.accessCycleCount();
         PC.increment();
     }

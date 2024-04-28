@@ -47,8 +47,8 @@ load R1 R2 0
 math add R3 R1
 math add R1 R2 ; set end address
 copy R4 0
-load R1 R5 0
+load R2 R5 0
 math add R5 R4
-math add R3 R1
-branch lt R1 R2 -4
+math sub R2 R3 R2 
+branch ge R2 R1 -4
 halt
