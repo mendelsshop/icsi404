@@ -11,8 +11,10 @@ public class InstructionCache {
 	// cache
 	// we start address at 1024 because there are only 1024 memory addresses
 	// so any address over 1024 invalid
-	private Word startAddress = new Word(1024);
-	private Word[] cached = new Word[8];
+	private static Word startAddress = new Word(1024);
+	private static Word[] cached = new Word[] {
+			new Word(0), new Word(0), new Word(0), new Word(0), new Word(0), new Word(0), new Word(0), new Word(0),
+	};
 	private static int clockCycle = 0;
 
 	// TODO: if we only use this to cache instructions
@@ -39,7 +41,7 @@ public class InstructionCache {
 	// start = 1015
 	// lookup 1025
 	// invalid read
-	public Word Read(Word address) {
+	public static Word read(Word address) {
 		var addressDiffernce = ALU.sub(address, startAddress);
 		return Optional
 				.ofNullable(Stream.iterate(3, i -> i < 32, i -> i + 1).map(addressDiffernce::getBit).reduce(Bit::or)
@@ -51,15 +53,15 @@ public class InstructionCache {
 					clockCycle = 10;
 					return cached[i];
 				}).orElseGet(() -> {
-					// if cache miss read from l2 cache
-					startAddress = LevelTwoCache.readBlock(address, cached);
+					// if cache miss read from l2
+					startAddress.copy(LevelTwoCache.readBlock(address, cached));
 					clockCycle = 50 + LevelTwoCache.getClockCycle();
 					var newAddressDiffernce = ALU.sub(address, startAddress);
 					return cached[threeBitDecoder(newAddressDiffernce)];
 				});
 	}
 
-	private int threeBitDecoder(Word word) {
+	private static int threeBitDecoder(Word word) {
 		var firstBit = word.getBit(0);
 		var secondBit = word.getBit(1);
 		var thirdBit = word.getBit(2);

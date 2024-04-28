@@ -21,13 +21,16 @@ public class LevelTwoCache {
 	private static class CacheUnit {
 
 		private Word startAddress = new Word(1024);
-		private Word[] cached = new Word[32];
+		private Word[] cached = new Word[] {
+				new Word(0), new Word(0), new Word(0), new Word(0), new Word(0), new Word(0),new Word(0), new Word(0),
+		};
 
 		public <T> Optional<T> access(Word address, TriFunction<Word, Integer, Word[], T> accesor) {
 			var addressDiffernce = ALU.sub(address, startAddress);
 			var firstBit = addressDiffernce.getBit(0);
 			var secondBit = addressDiffernce.getBit(1);
 			var thirdBit = addressDiffernce.getBit(2);
+			
 			return Optional.ofNullable(Stream.iterate(3, i -> i < 32, i -> i + 1).map(addressDiffernce::getBit).reduce(
 			// @formatter:off
 					Bit::or).get().not().getValue() ? (
@@ -39,15 +42,16 @@ public class LevelTwoCache {
 						: secondBit.getValue() ? 2 : firstBit.getValue() ? 1 : 0)
 					: null)
 					// @formatter:on
-					.map(i -> accesor.apply(startAddress, i, cached));
+					.map(i -> accesor.apply(startAddress, i, cached)).map(i->{System.err.println(i); return i;});
 		}
 
 		public void update(Word address) {
-			startAddress = MainMemory.copyBlock(address, cached);
+			startAddress.copy(MainMemory.copyBlock(address, cached));
 		}
 
-		public void save(Word address) {
-			MainMemory.saveBlock(address, cached);
+		public void save() {
+			if (!startAddress.equals(new Word(1024)))
+				MainMemory.saveBlock(startAddress, cached);
 		}
 	}
 
@@ -81,26 +85,27 @@ public class LevelTwoCache {
 		return Stream.iterate(0, i -> i < cache.length, i -> i + 1).map(i -> cache[i].access(address, accesor))
 				.reduce((a, b) -> a.or(() -> b)).get().map(x -> {
 					clockCycle = 20;
+					System.err.println("hitt");
 					return x;
 				}).orElseGet(() -> {
 					var evicted = cache[evicter.nextInt(cache.length)];
 					// cache miss 700 cycles -- because save to memory and then load new
 					clockCycle = 700;
-					evicted.save(address);
+					System.err.println("miss");
+					evicted.save();
 					evicted.update(address);
 					return evicted.access(address, accesor).get();
 				});
 	}
 
-	public Word read(Word address) {
+	public static Word read(Word address) {
 		return access(address, (start, i, cache) -> cache[i]);
 	}
 
 	public static Word readBlock(Word address, Word[] instructionCache) {
 		return access(address, (start, i, cache) -> {
 			for (int j = 0; j < cache.length; j++) {
-
-				instructionCache[j].copy(cache[j]);
+				instructionCache[j] = cache[j].clone();
 			}
 			return start;
 		});
@@ -109,8 +114,8 @@ public class LevelTwoCache {
 	public static void write(Word address, Word value) {
 		access(address, (start, i, cache) -> {
 			cache[i].copy(value);
-			// we just use null because generics cannot be instiated with void
-			return null;
+			// we have to return something due to the sinature of acces
+			return 0;
 		});
 	}
 
