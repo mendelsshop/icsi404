@@ -218,16 +218,16 @@ public class Processor {
     private Word result;
 
     private Word pop() {
-        var result = MainMemory.read(SP);
-        clockCycle += MainMemory.accessCycleCount();
+        var result = LevelTwoCache.read(SP);
+        clockCycle += LevelTwoCache.getClockCycle();
         SP.increment();
         return result;
     }
 
     private void push(Word value) {
         SP.decrement();
-        clockCycle += MainMemory.accessCycleCount();
-        MainMemory.write(SP, value);
+        clockCycle += LevelTwoCache.getClockCycle();
+        LevelTwoCache.write(SP, value);
     }
 
     private void execute() {
@@ -279,16 +279,16 @@ public class Processor {
             case LOAD -> {
                 switch (getInstructionFormat()) {
                     case TWOR -> {
-                        result = MainMemory.read(ALU.add(getRegister(Rs1), Immediate));
-                        clockCycle += MainMemory.accessCycleCount();
+                        result = LevelTwoCache.read(ALU.add(getRegister(Rs1), Immediate));
+                        clockCycle += LevelTwoCache.getClockCycle();
                     }
                     case THREER -> {
-                        result = MainMemory.read(ALU.add(getRegister(Rs1), getRegister(Rs2)));
-                        clockCycle += MainMemory.accessCycleCount();
+                        result = LevelTwoCache.read(ALU.add(getRegister(Rs1), getRegister(Rs2)));
+                        clockCycle += LevelTwoCache.getClockCycle();
                     }
                     case ONER -> {
-                        result = MainMemory.read(ALU.add(getRegister(Rd), Immediate));
-                        clockCycle += MainMemory.accessCycleCount();
+                        result = LevelTwoCache.read(ALU.add(getRegister(Rd), Immediate));
+                        clockCycle += LevelTwoCache.getClockCycle();
                     }
                     case ZEROR -> {
                         result = pop();
@@ -338,14 +338,14 @@ public class Processor {
                         var spRelativejump = ALU.add(getRegister(Rs1), Immediate);
                         Word address = ALU.add(SP, spRelativejump);
                         // System.out.println("peeking "+address.getSigned());
-                        result = MainMemory.read(address);
-                        clockCycle += MainMemory.accessCycleCount();
+                        result = LevelTwoCache.read(address);
+                        clockCycle += LevelTwoCache.getClockCycle();
                     }
                     // PEEK (does not modify sp)
                     case THREER -> {
                         var spRelativejump = ALU.add(getRegister(Rs1), getRegister(Rs2));
-                        result = MainMemory.read(ALU.add(SP, spRelativejump));
-                        clockCycle += MainMemory.accessCycleCount();
+                        result = LevelTwoCache.read(ALU.add(SP, spRelativejump));
+                        clockCycle += LevelTwoCache.getClockCycle();
                     }
                     // POP (modifies SP)
                     case ONER ->
@@ -400,8 +400,8 @@ public class Processor {
                     case TWOR -> result = ALU.add(getRegister(Rd), Immediate);
                     case THREER -> result = ALU.add(getRegister(Rd), getRegister(Rs1));
                     case ONER -> {
-                        MainMemory.write(getRegister(Rd), Immediate);
-                        clockCycle += MainMemory.accessCycleCount();
+                        LevelTwoCache.write(getRegister(Rd), Immediate);
+                        clockCycle += LevelTwoCache.getClockCycle();
                     }
                     case ZEROR -> {
                         // TODO: what happens if unused instructions are used
@@ -461,8 +461,8 @@ public class Processor {
                 switch (getInstructionFormat()) {
                     // we already decremented sp in execute
                     case THREER, TWOR, ONER -> {
-                        MainMemory.write(SP, result);
-                        clockCycle += MainMemory.accessCycleCount();
+                        LevelTwoCache.write(SP, result);
+                        clockCycle += LevelTwoCache.getClockCycle();
                     }
                     default -> {
                     }
@@ -471,12 +471,12 @@ public class Processor {
             case STORE -> {
                 switch (getInstructionFormat()) {
                     case TWOR -> {
-                        MainMemory.write(result, getRegister(Rs1));
-                        clockCycle += MainMemory.accessCycleCount();
+                        LevelTwoCache.write(result, getRegister(Rs1));
+                        clockCycle += LevelTwoCache.getClockCycle();
                     }
                     case THREER -> {
-                        MainMemory.write(result, getRegister(Rs2));
-                        clockCycle += MainMemory.accessCycleCount();
+                        LevelTwoCache.write(result, getRegister(Rs2));
+                        clockCycle += LevelTwoCache.getClockCycle();
                     }
                     default -> {
                     }
@@ -487,9 +487,8 @@ public class Processor {
     }
 
     private void fetch() {
-        currentInstruction = MainMemory.read(PC);
-        System.out.println(registers[4].getSigned());
-        clockCycle += MainMemory.accessCycleCount();
+        currentInstruction = InstructionCache.read(PC);
+        clockCycle += InstructionCache.getClockCycle();
         PC.increment();
     }
 

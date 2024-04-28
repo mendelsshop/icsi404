@@ -215,8 +215,8 @@ public class MainMemory {
         // if we are reading from arround the end of memory
         // bounce back so that the whole read is in memory
         if (int_address + cached.length > MEMORY.length) {
-            address = new Word(MEMORY.length - cached.length - 1);
-            int_address = MEMORY.length - cached.length - 1;
+            address = new Word(MEMORY.length - cached.length);
+            int_address = MEMORY.length - cached.length;
         }
         for (var i = 0; i < cached.length; i++) {
             cached[i] = MEMORY[int_address + i];
